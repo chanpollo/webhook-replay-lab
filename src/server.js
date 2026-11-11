@@ -57,7 +57,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
     try {
       if(now()-budgetStart>=60000){budgetStart=now();budget=0;}
       const authorized=auth((req.headers.authorization||'').replace(/^Bearer /,''));
-      const privateStatic=req.method==='GET'&&['/','/app.js','/style.css','/healthz'].includes(req.url);
+      const privateStatic=req.method==='GET'&&['/','/app.js','/analytics.js','/style.css','/healthz'].includes(req.url);
       if(!authorized&&!privateStatic&&++budget>600)return reply(429,{error:'Public request limit exceeded'});
       if(!storageHealthy)return reply(503,{error:'Storage unavailable; operator intervention required'});
       const host=(req.headers.host||'').split(':')[0];
@@ -68,7 +68,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         res.writeHead(200,{'content-type':'text/html','cache-control':'no-store','content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"});
         return res.end(readFileSync(new URL('./index.html',import.meta.url)));
       }
-      if(req.method==='GET' && ['/app.js','/style.css'].includes(req.url)) {
+      if(req.method==='GET' && ['/app.js','/analytics.js','/style.css'].includes(req.url)) {
         res.writeHead(200,{'content-type':req.url.endsWith('.js')?'text/javascript':'text/css','x-content-type-options':'nosniff'});
         return res.end(readFileSync(new URL('.'+req.url,import.meta.url)));
       }
@@ -101,7 +101,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input),label:'Signed ingress',attempts:[]};
         events.set(event.id,event);receipts.set(id,now());persist();return reply(201,{id:event.id});
       }
-      if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,persistent:!!store,ingressEnabled:!!ingressKey});
+      if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,maxAttemptsPerEvent:20,serverTime:now(),persistent:!!store,ingressEnabled:!!ingressKey});
       if(req.method==='POST' && req.url==='/api/events') {
         if(events.size>=200) return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
         if(!input.payload || typeof input.payload!=='object') return reply(400,{error:'JSON object or array payload required'});

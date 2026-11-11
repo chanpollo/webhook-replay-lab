@@ -2,18 +2,27 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: v0.2.1 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Status: v0.3.0 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Screenshots
 
-Responsive private workbench with separate capture, inbox, inspection and replay panels, keyboard navigation and mobile layouts. Screenshots use synthetic data only. The sample shows sanitized payload inspection and missing-value-aware comparison. No real customer data or usable credentials are shown.
+Three focused views: Overview, Replay history, and Workbench. Screenshots use actual locally recorded **synthetic** captures and injected replay outcomes, not customer traffic or an external staging integration. No real customer data or usable credentials are shown. Charts in normal use derive only from retained server records; the app does not seed demo metrics.
 
-![Desktop inbox and payload comparison](docs/desktop-preview.png)
+![Retained activity overview](docs/desktop-preview.png)
+
+<details>
+<summary>Replay history and selected-event investigation</summary>
+
+![Searchable replay attempt history](docs/history-preview.png)
+
+![Selected-event payload and retained attempts](docs/workbench-preview.png)
+
+</details>
 
 <details>
 <summary>Mobile layout (390 px)</summary>
 
-![Mobile inbox, inspection and replay controls](docs/mobile-preview.png)
+![Mobile retained activity overview](docs/mobile-preview.png)
 
 </details>
 
@@ -27,13 +36,25 @@ npm start
 
 Open http://127.0.0.1:4319 and paste the session token printed in your terminal. No dependency installation required. Do not share this token or redirect logs to a shared location. The token is generated per process unless `LAB_TOKEN` is supplied. Keep the terminal running; Ctrl-C stops the lab and discards its memory.
 
-1. Unlock the inbox.
+1. Unlock the inbox and open **Workbench**.
 2. Capture the clearly labeled synthetic order.
 3. Inspect the redacted JSON and export its fixture.
 4. Change the synthetic amount, capture a second event, then compare it with the first.
 5. Delete events you no longer need.
 
 Default storage is **memory-only** (the self-hosted profiles use encrypted snapshots): restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
+
+## Investigate with real retained data
+
+- **Overview:** last-hour or last-24-hour capture/replay-start counts, 12 time buckets, outcome distribution, unknown deliveries, and median recorded HTTP-response latency. Open the accessible chart table for exact timestamps and counts. Every figure uses the server snapshot time; **Refresh data** is manual, not a live stream.
+- **Replay history:** search event labels/IDs, attempt IDs, and destinations; filter unknown, non-2xx, blocked, 2xx, or active outcomes. It uses replay start time, independent of the original capture time. The initial list shows 20 attempts with a Show more control. Open any result directly in Workbench.
+- **Workbench:** searchable capture inbox, redacted JSON, fixture export, payload comparison, and this event's newest-first attempt timeline. History includes target, time, HTTP code, recorded latency, error and correlation ID when available. Only explicitly confirmed replay can send a request.
+- **Honest outcomes:** HTTP 2xx means a response was received, not that business processing succeeded. A timeout/interrupted transport can be **unknown delivery**, not a safe-to-retry failure. Review receiver logs with its attempt ID first. Missing latency is shown as unavailable, not zero.
+- **Persistence:** no new history database is required. Existing optional encrypted snapshots preserve records across restart; default memory-only mode does not. Events expire 24 hours after capture, with at most 200 events and 20 retained attempts per event. Deletion, expiry and caps remove records from counts. This is **not a complete audit log**. Synthetic samples you capture count as real records in this workspace and remain visibly labeled.
+
+Tab navigation supports keyboard arrows, Home/End, and view-only URL hashes with Back/Forward. Tokens and payloads are never saved to browser storage or the URL. A failed refresh clearly marks the older snapshot.
+
+See [dashboard design, verification and bounded performance measurements](docs/DASHBOARD.md) for scope and remaining gaps.
 
 ## Optional staging replay
 
@@ -89,9 +110,11 @@ Optional browser QA uses an existing Playwright installation:
 
 ```sh
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/ui-smoke.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-smoke.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-performance.mjs
 ```
 
-The browser test blocks all non-local requests. It covers unlocking, repeated capture clicks, sanitization, comparison, fixture download, deletion, token-change handling, mobile overflow and browser errors. Screenshots are in `docs/desktop-preview.png` and `docs/mobile-preview.png`.
+The browser test blocks all non-local requests. It covers unlocking, repeated capture clicks, sanitization, comparison, fixture download, deletion, token-change handling, mobile overflow and browser errors. The dashboard suite also checks encrypted-history restart, filters, exact metric values, retention, stale snapshots, token clearing and responsive views. Run it last to regenerate all four screenshot files in `docs/`. The separate performance script is synthetic and makes no competitor-speed claim.
 
 ## Limits and honest boundaries
 

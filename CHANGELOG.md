@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.0 — 2026-11-11
+
+- Add data-backed Overview, searchable Replay history and focused Workbench views.
+- Chart retained captures/replay starts and explicit replay outcomes; report unknown delivery separately from HTTP responses, with latency only when recorded.
+- Expose persisted per-event attempt timelines and one-click event investigation without changing replay confirmation, retention or security policy.
+- Show server-snapshot freshness, manual refresh failure, memory-only versus encrypted storage, bounded-history caveats and synthetic-record inclusion.
+- Add keyboard tabs and Back/Forward, accessible chart tables, readable responsive layouts and regenerated synthetic screenshots.
+- Add six analytics unit tests, an encrypted-history browser suite and reproducible 200-event/4,000-attempt local performance checks.
+
+
 ## 0.2.1 — 2026-11-11
 
 - Fix isolated Docker smoke cleanup to remove its separate restore-test volume as well as the active profile volume. Only exact disposable project labels/names are removed; application behavior is unchanged.

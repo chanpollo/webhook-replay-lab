@@ -12,13 +12,14 @@ try{
  await page.route('**/*',route=>route.request().url().startsWith(base+'/')?route.continue():route.abort());
  const errors=[];page.on('pageerror',error=>errors.push(error.message));
  await page.goto(base);await page.locator('#token').fill(token);await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent==='Ready');
- await page.locator('#capture').dblclick();await page.waitForFunction(()=>document.querySelectorAll('.event').length===1);await page.waitForFunction(()=>document.querySelector('#status').textContent==='Ready');
+ await page.locator('#tab-workbench').click();await page.locator('#capture').dblclick();await page.waitForFunction(()=>document.querySelectorAll('.event').length===1);await page.waitForFunction(()=>document.querySelector('#status').textContent==='Ready');
  assert.match(await page.locator('#detail').innerText(),/REDACTED/);assert.doesNotMatch(await page.locator('#detail').innerText(),/synthetic-secret/);
  await page.locator('#label').fill('Synthetic revision');await page.locator('#payload').fill('{"type":"order.created","order":{"id":"demo-001","amount":1799,"currency":"THB"}}');await page.locator('#capture').click();await page.waitForFunction(()=>document.querySelectorAll('.event').length===2);
  await page.locator('#compareWith').selectOption({index:1});await page.locator('#compare').click();await page.waitForFunction(()=>document.querySelector('#diff').textContent.includes('amount'));
  const downloadPromise=page.waitForEvent('download');await page.locator('#export').click();const download=await downloadPromise;assert.match(download.suggestedFilename(),/webhook-fixture-/);
- await page.screenshot({path:'docs/desktop-preview.png',fullPage:true});
+ await page.screenshot({path:'docs/workbench-preview.png',fullPage:true});await page.locator('#tab-overview').click();await page.screenshot({path:'docs/desktop-preview.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:'docs/mobile-preview.png',fullPage:true});
+ await page.locator('#tab-workbench').click();
  // A selection change while preparation is in flight must not resurrect an old review.
  let releasePrepare;const prepareGate=new Promise(r=>releasePrepare=r);let prepareSeen;
  const seenPrepare=new Promise(r=>prepareSeen=r);
@@ -32,7 +33,7 @@ try{
  await page.locator('#prepare').click();await page.locator('#review').waitFor({state:'visible'});clock+=60001;await page.locator('#confirm').fill('SEND TO STAGING');await page.locator('#send').click();await page.waitForFunction(()=>document.querySelector('#result').textContent.includes('Server rejected request'));assert.equal(sendCount,0);
  await page.locator('#prepare').click();await page.locator('#review').waitFor({state:'visible'});await page.locator('#confirm').fill('SEND TO STAGING');await page.locator('#send').dblclick();await page.waitForFunction(()=>document.querySelector('#result').textContent.includes('response_received'));assert.equal(sendCount,1);
  await page.locator('#target').selectOption(target);await page.locator('#prepare').click();await page.locator('#review').waitFor({state:'visible'});await page.route('**/api/replay',route=>route.abort());await page.locator('#confirm').fill('SEND TO STAGING');await page.locator('#send').click();await page.waitForFunction(()=>document.querySelector('#result').textContent.includes('Delivery may be unknown'));assert.equal(sendCount,1);
- await page.reload();assert.equal(await page.locator('#review').isVisible(),false);await page.locator('#token').fill(token);await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelectorAll('.event').length===2);await page.locator('.event').first().click();
+ await page.reload();await page.locator('#tab-workbench').click();assert.equal(await page.locator('#review').isVisible(),false);await page.locator('#token').fill(token);await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelectorAll('.event').length===2);await page.locator('.event').first().click();
  await page.locator('#delete').click();await page.waitForFunction(()=>document.querySelectorAll('.event').length===1);
  // A completed old-token request must not unlock the inbox after the token changed.
  let releaseEvents;const eventsGate=new Promise(r=>releaseEvents=r);let eventsSeen;

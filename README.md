@@ -77,7 +77,7 @@ The browser test blocks all non-local requests. It covers unlocking, repeated ca
 ## Limits and honest boundaries
 
 - 64 KB inbound JSON; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
-- Redaction uses sensitive field-name matching and email/Bearer patterns. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
+- Redaction uses sensitive field-name matching and email/Bearer patterns. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
 - Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values and explicit null both display as null.
 - Single-user token, no tenant isolation, SSO/RBAC, persistent audit log, encryption-at-rest store, signature verification, scheduling or delivery queue.
 - No public provider receiver or outbound authentication. No guarantee of exactly-once delivery.

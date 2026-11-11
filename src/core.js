@@ -3,11 +3,18 @@ import https from 'node:https';
 import { isIP } from 'node:net';
 import { randomUUID, createHash } from 'node:crypto';
 
-const sensitive = /password|passwd|secret|token|authorization|cookie|api.?key|signature|email|phone|address|card|ssn/i;
+const sensitive = /password|passwd|passphrase|secret|token|authorization|cookie|api.?key|signature|email|phone|address|card|ssn/i;
+const sensitiveWords = new Set(['cvv','cvc','pin','otp','totp','jwt','iban']);
+const sensitiveNames = ['privatekey','sessionid','accountnumber','routingnumber','recoverycode','backupcode','accesskey','signingkey','encryptionkey','securityanswer'];
+function sensitiveKey(key) {
+  const words=key.replace(/([a-z0-9])([A-Z])/g,'$1 $2').toLowerCase().split(/[^a-z0-9]+/);
+  const compact=words.join('');
+  return sensitive.test(key) || words.some(word=>sensitiveWords.has(word)) || sensitiveNames.some(name=>compact.includes(name));
+}
 export function redact(value, depth = 0) {
   if (depth > 32) throw new Error('Payload nesting limit exceeded');
   if (Array.isArray(value)) return value.map(v => redact(v, depth + 1));
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v]) => [k, sensitive.test(k) ? '[REDACTED]' : redact(v, depth + 1)]));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v]) => [k, sensitiveKey(k) ? '[REDACTED]' : redact(v, depth + 1)]));
   // Conservative scrubbing, not a guarantee against arbitrary PII in free text.
   return typeof value === 'string' ? value.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, '[EMAIL]').replace(/Bearer\s+\S+/gi, 'Bearer [REDACTED]') : value;
 }

@@ -51,3 +51,14 @@ test('capture preserves UTF-8 when a character spans network chunks',async t=>{
  });
  assert.equal(result.payload.message,'สวัสดี');
 });
+
+test('obvious credential and financial key variants are redacted without masking shipping',()=>{
+ const keys=['cvv','CVC','pin','otp','totp','private_key','privateKey','session_id','sessionId','jwt','account_number','accountNumber','routing_number','iban','recovery_code','backupCode','access_key','signingKey','encryption_key','security_answer','passphrase'];
+ const payload=Object.fromEntries(keys.map(key=>[key,'synthetic-value']));payload.shipping='standard';payload.opinion='test';
+ const clean=redact(payload);for(const key of keys)assert.equal(clean[key],'[REDACTED]',key);
+ assert.equal(clean.shipping,'standard');assert.equal(clean.opinion,'test');
+});
+test('capture rejects a request larger than 64 KB with 413',async t=>{
+ const f=await fixture(t);assert.equal((await f.request('events',{payload:{text:'x'.repeat(66000)}})).status,413);
+ assert.equal((await f.request('events')).data.events.length,0);
+});

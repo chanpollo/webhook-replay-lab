@@ -1,0 +1,88 @@
+# Webhook Replay Lab
+
+A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
+
+**Status: working local MVP, not production-ready.** No cloud service, public inbox, telemetry, production routing, automatic retries, or real external replay is enabled by default.
+
+## Start
+
+Requires Node.js 22 or newer (validated on Node 25.2.1).
+
+```sh
+npm start
+```
+
+Open http://127.0.0.1:4319 and paste the session token printed in your terminal. No dependency installation required. Do not share this token or redirect logs to a shared location. The token is generated per process unless `LAB_TOKEN` is supplied. Keep the terminal running; Ctrl-C stops the lab and discards its memory.
+
+1. Unlock the inbox.
+2. Capture the clearly labeled synthetic order.
+3. Inspect the redacted JSON and export its fixture.
+4. Change the synthetic amount, capture a second event, then compare it with the first.
+5. Delete events you no longer need.
+
+Storage is **memory-only**: restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
+
+## Optional staging replay
+
+Only enable an endpoint that you own and have confirmed is isolated staging with harmless test credentials and test downstream integrations. The program cannot prove an environment is staging. An allowlisted production URL would still be dangerous.
+
+```sh
+STAGING_ALLOWLIST='https://your-confirmed-staging.example/webhooks/test' npm start
+```
+
+Comma-separated exact HTTPS URLs are accepted. No query strings, fragments, URL credentials, IP literals, or ports other than 443. Do not put secrets in URL paths. Each replay requires reviewing the destination and payload hash and typing `SEND TO STAGING`; confirmation expires after 60 seconds and is consumed before network activity. There are no automatic retries. Inspect an unknown-delivery result at the destination before considering another attempt.
+
+All DNS answers must be public IPv4. The validated address is pinned to the TLS connection while the original hostname remains the certificate/SNI authority. IPv6 and special/private/metadata addresses fail closed. Redirects are reported but never followed. The request has a five-second transport deadline and a 64 KB response limit; response bodies and headers are not stored. A fresh idempotency key is provided, but receiver support is unknown and this is **not** a guarantee against duplicate effects.
+
+Replay sends only sanitized JSON and newly generated minimal headers. It does not forward authentication, cookies or original provider signatures. This may intentionally break a provider-specific signature check. Use a dedicated staging adapter; do not disable verification on a production endpoint.
+
+## Private capture API
+
+The inbox is not a publicly accessible provider URL. A local integration test may submit JSON with the same session token:
+
+```sh
+curl http://127.0.0.1:4319/api/events \
+  -H "Authorization: Bearer $LAB_TOKEN" \
+  -H 'Content-Type: application/json' \
+  --data '{"label":"Synthetic test","payload":{"type":"test.event","value":1}}'
+```
+
+For this example, start the server with `LAB_TOKEN` set to your own randomly generated value of at least 32 characters. Do not use a real customer payload before reviewing redaction limitations.
+
+## Container
+
+```sh
+export LAB_TOKEN="$(openssl rand -hex 32)"
+docker compose up --build
+```
+
+Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote Hostinger VPS would require SSH forwarding for this current private UI; public provider ingress is out of scope. No deployment has been performed.
+
+## Checks
+
+```sh
+npm test
+npm run check
+LAB_TOKEN=synthetic-config-validation-token-000000 docker compose config --quiet
+```
+
+Optional browser QA uses an existing Playwright installation:
+
+```sh
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/ui-smoke.mjs
+```
+
+The browser test blocks all non-local requests. It covers unlocking, repeated capture clicks, sanitization, comparison, fixture download, deletion, token-change handling, mobile overflow and browser errors. Screenshots are in `docs/desktop-preview.png` and `docs/mobile-preview.png`.
+
+## Limits and honest boundaries
+
+- 64 KB inbound JSON; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
+- Redaction uses sensitive field-name matching and email/Bearer patterns. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
+- Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values and explicit null both display as null.
+- Single-user token, no tenant isolation, SSO/RBAC, persistent audit log, encryption-at-rest store, signature verification, scheduling or delivery queue.
+- No public provider receiver or outbound authentication. No guarantee of exactly-once delivery.
+- This is a bounded developer tool, not a hardened internet-facing security product. See [security notes](docs/SECURITY.md), [product hypothesis](docs/PRODUCT.md), and [verification](docs/VERIFICATION.md).
+
+## License
+
+MIT. See [development plan](PLAN.md) and [changelog](CHANGELOG.md). No service deployment is included.

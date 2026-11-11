@@ -1,0 +1,15 @@
+{
+  "name": "webhook-replay-lab",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js",
+    "check": "node --check src/server.js && node --check src/core.js && node --check src/app.js"
+  },
+  "license": "MIT"
+}

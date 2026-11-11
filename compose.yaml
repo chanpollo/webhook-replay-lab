@@ -1,0 +1,14 @@
+services:
+  lab:
+    build: .
+    ports:
+      - "127.0.0.1:4319:4319"
+    environment:
+      CONTAINER_MODE: "1"
+      LAB_TOKEN: "${LAB_TOKEN:?Set a random token of at least 32 characters}"
+      STAGING_ALLOWLIST: "${STAGING_ALLOWLIST:-}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    mem_limit: 128m

@@ -41,3 +41,13 @@ test('payload and pending-confirmation limits fail closed',async t=>{
  for(let i=0;i<100;i++)assert.equal((await f.request('prepare',{id:event.id,url})).status,200);
  assert.equal((await f.request('prepare',{id:event.id,url})).status,429);
 });
+test('capture preserves UTF-8 when a character spans network chunks',async t=>{
+ const f=await fixture(t);
+ const body=Buffer.from(JSON.stringify({payload:{message:'สวัสดี'}}));
+ const split=body.indexOf(Buffer.from('ส'))+1;
+ const result=await new Promise((resolve,reject)=>{
+  const req=http.request(f.base+'/api/events',{method:'POST',headers:{authorization:'Bearer '+token,'content-type':'application/json'}},res=>{let data='';res.on('data',chunk=>data+=chunk);res.on('end',()=>resolve(JSON.parse(data)));});
+  req.on('error',reject);req.write(body.subarray(0,split));setTimeout(()=>req.end(body.subarray(split)),20);
+ });
+ assert.equal(result.payload.message,'สวัสดี');
+});

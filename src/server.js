@@ -34,8 +34,9 @@ export function createLab({token, allowlist=[], send=transmit, resolve=resolveTa
       let input={};
       if(req.method==='POST') {
         if(!req.headers['content-type']?.startsWith('application/json')) return reply(415,{error:'JSON required'});
-        let raw='';
-        for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>65536){reply(413,{error:'64 KB request limit'});req.destroy();return;}}
+        const chunks=[];let bytes=0;
+        for await(const chunk of req){bytes+=chunk.length;if(bytes>65536){reply(413,{error:'64 KB request limit'});req.destroy();return;}chunks.push(chunk);}
+        const raw=new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks));
         input=JSON.parse(raw||'{}');
       }
       if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200});

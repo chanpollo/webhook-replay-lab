@@ -4,13 +4,17 @@ Environment: macOS, Node 25.2.1; official Node 24 Alpine container.
 
 ## Passed
 
-- 13/13 Node unit/API/security tests: nested redaction; special/private/metadata/IPv6 addresses; exact HTTPS allowlist; all-answer DNS validation; nested comparison; bearer auth, origin and Host checks; capture/export/delete; single-use confirmed sanitized replay; confirmation expiry and event retention; blocked DNS; unknown delivery/no retry; pinned DNS/no redirects via injected transport; event/request/pending-confirmation limits.
+- 14/14 Node unit/API/security tests: nested redaction; UTF-8 preservation across network chunks; special/private/metadata/IPv6 addresses; exact HTTPS allowlist; all-answer DNS validation; nested comparison; bearer auth, origin and Host checks; capture/export/delete; single-use confirmed sanitized replay; confirmation expiry and event retention; blocked DNS; unknown delivery/no retry; pinned DNS/no redirects via injected transport; event/request/pending-confirmation limits.
 - Syntax checks for server, core and browser JavaScript.
 - Playwright Chromium local browser smoke: unlock; repeated capture click; sanitized inspection; second capture and comparison; fixture download; deletion; token change/wrong token; no browser errors; 390px mobile width without horizontal overflow. All non-local browser requests blocked.
 - Desktop and mobile screenshots inspected visually.
 - Docker Compose configuration validation.
 - Docker image build from official Node 24 Alpine.
 - Container runtime smoke did not complete: Docker left the isolated test container in `created` state, with no process or daemon error reported. The temporary container was removed. Runtime behavior remains unverified; image build and Compose configuration did pass.
+
+## Published CI
+
+[Initial CI run](https://github.com/chanpollo/webhook-replay-lab/actions/runs/42970123632) passed Node 22, Node 24 and the isolated hardened container runtime. The local Docker startup issue does not reproduce in that GitHub runner. Check the release commit's latest CI for subsequent changes.
 
 ## Not performed
 

@@ -14,7 +14,7 @@ Environment: macOS, Node 25.2.1; official Node 24 Alpine container.
 
 ## Published CI
 
-[Initial CI run](https://github.com/chanpollo/webhook-replay-lab/actions/runs/42970123632) passed Node 22, Node 24 and the isolated hardened container runtime. The local Docker startup issue does not reproduce in that GitHub runner. Check the release commit's latest CI for subsequent changes.
+[Reviewed-code CI run](https://github.com/chanpollo/webhook-replay-lab/actions/runs/42971360310) passed Node 22, Node 24 and the isolated hardened container runtime. The local Docker startup issue does not reproduce in that GitHub runner. Check the release commit's latest CI for subsequent changes.
 
 ## Not performed
 

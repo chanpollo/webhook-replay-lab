@@ -12,8 +12,10 @@ The first release is `v0.1.0-alpha.1`, an experimental local developer tool. Pas
 - [x] DNS pinning, private-address restrictions, redirect blocking and no automatic retries.
 - [x] Memory retention and resource limits.
 - [x] Unit/API security checks, local browser smoke, Docker packaging and operating documentation.
-- [ ] Independent CK and Argon review and disposition of all release-blocking findings.
-- [ ] Green CI on the exact release commit, including container runtime validation.
+- [x] CK review completed; UTF-8, obvious-secret field coverage and oversized-body regression findings addressed.
+- [ ] Argon review or explicit owner-approved deferral; reviewer identity/integration remains unresolved.
+- [x] Node 22/24 and hardened container runtime CI pass on the reviewed code revision.
+- [ ] Reconfirm CI on the exact final tag commit before publishing the alpha release.
 
 ## Phase 1 — Reproducible staging workflows
 

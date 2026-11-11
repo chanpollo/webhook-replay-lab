@@ -53,7 +53,7 @@ test('capture preserves UTF-8 when a character spans network chunks',async t=>{
 });
 
 test('obvious credential and financial key variants are redacted without masking shipping',()=>{
- const keys=['cvv','CVC','pin','otp','totp','private_key','privateKey','session_id','sessionId','jwt','account_number','accountNumber','routing_number','iban','recovery_code','backupCode','access_key','signingKey','encryption_key','security_answer','passphrase','credentials','credential','pan','recovery_key','recoveryKey','OTPCode','CVVNumber','PANNumber','JWTValue','pwd','mnemonic','seed_phrase','recovery_seed'];
+ const keys=['cvv','CVC','pin','otp','totp','private_key','privateKey','session_id','sessionId','jwt','account_number','accountNumber','routing_number','iban','recovery_code','backupCode','access_key','signingKey','encryption_key','security_answer','passphrase','credentials','credential','pan','recovery_key','recoveryKey','OTPCode','CVVNumber','PANNumber','JWTValue','pwd','mnemonic','seed_phrase','recovery_seed','aws_access_key_id'];
  const payload=Object.fromEntries(keys.map(key=>[key,'synthetic-value']));payload.shipping='standard';payload.opinion='test';
  const clean=redact(payload);for(const key of keys)assert.equal(clean[key],'[REDACTED]',key);
  assert.equal(clean.shipping,'standard');assert.equal(clean.opinion,'test');

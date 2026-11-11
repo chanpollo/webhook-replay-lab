@@ -3,11 +3,11 @@ import https from 'node:https';
 import { isIP } from 'node:net';
 import { randomUUID, createHash } from 'node:crypto';
 
-const sensitive = /password|passwd|passphrase|secret|token|authorization|cookie|api.?key|signature|email|phone|address|card|ssn/i;
-const sensitiveWords = new Set(['cvv','cvc','pin','otp','totp','jwt','iban']);
-const sensitiveNames = ['privatekey','sessionid','accountnumber','routingnumber','recoverycode','backupcode','accesskey','signingkey','encryptionkey','securityanswer'];
+const sensitive = /password|passwd|passphrase|credential|secret|token|authorization|cookie|api.?key|signature|email|phone|address|card|ssn/i;
+const sensitiveWords = new Set(['cvv','cvc','pin','otp','totp','jwt','iban','pan','pwd','mnemonic']);
+const sensitiveNames = ['privatekey','sessionid','accountnumber','routingnumber','recoverycode','recoverykey','recoveryseed','seedphrase','backupcode','accesskey','signingkey','encryptionkey','securityanswer'];
 function sensitiveKey(key) {
-  const words=key.replace(/([a-z0-9])([A-Z])/g,'$1 $2').toLowerCase().split(/[^a-z0-9]+/);
+  const words=key.replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2').replace(/([a-z0-9])([A-Z])/g,'$1 $2').toLowerCase().split(/[^a-z0-9]+/);
   const compact=words.join('');
   return sensitive.test(key) || words.some(word=>sensitiveWords.has(word)) || sensitiveNames.some(name=>compact.includes(name));
 }

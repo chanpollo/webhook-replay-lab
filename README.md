@@ -2,7 +2,7 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: v0.2.0-beta.1 private self-host pilot, not production-ready.** Encrypted persistence and optional signed custom ingress are available. No cloud deployment, production routing, automatic retries or live external integration has been verified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Status: v0.2.0-beta.2 private self-host pilot, not production-ready.** Encrypted persistence and optional signed custom ingress are available. No cloud deployment, production routing, automatic retries or live external integration has been verified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Screenshots
 
@@ -70,6 +70,10 @@ docker compose up --build
 ```
 
 Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional pilot exposes only a custom signed capture route, not native provider signatures. No deployment has been performed.
+
+## Hostinger VPS
+
+Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTINGER.md). It keeps the UI behind SSH forwarding, disables signed ingress, and uses a Docker-managed encrypted-data volume. This is a VPS/Docker path, not PHP shared hosting or a public managed web app. Hostinger deployment and partner-program approval are **not verified**. The existing screenshots above remain representative; this release does not change the UI.
 
 ## Checks
 

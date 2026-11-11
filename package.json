@@ -1,6 +1,6 @@
 {
   "name": "webhook-replay-lab",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/*.test.js",
-    "check": "node --check src/server.js && node --check src/core.js && node --check src/app.js && node --check src/store.js"
+    "check": "node --check src/server.js && node --check src/core.js && node --check src/app.js && node --check src/store.js",
+    "test:hostinger": "node test/hostinger-smoke.mjs"
   },
   "license": "MIT"
 }

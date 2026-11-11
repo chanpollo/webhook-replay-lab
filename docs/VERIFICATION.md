@@ -1,6 +1,10 @@
 # Beta verification — 2026-11-11
 
-Scope: v0.2.0-beta.1 private single-user synthetic-data pilot. Not production-ready.
+Scope: v0.2.0-beta.2 private single-user synthetic-data pilot. Not production-ready.
+
+## Hostinger compatibility release
+
+The beta.2 changes add `compose.hostinger.yaml`, a named-volume private VPS recipe, documentation and an isolated Docker regression test. No application runtime source changed. All 36 Node tests, syntax checks and the existing local-only Playwright suite were rerun successfully. Desktop/mobile screenshots were regenerated with synthetic data and visually inspected. The new profile smoke passed actual capture and sanitized persistence through stop/start, non-root execution, disabled ingress, loopback-only configured binding and hardening checks. Test containers have no external network or published ports and are cleaned up with their disposable volume. This does not verify live Hostinger deployment or actual-host backup restore.
 
 ## Passed locally
 

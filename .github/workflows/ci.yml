@@ -58,3 +58,6 @@ jobs:
             const r=await fetch("http://127.0.0.1:4319/api/events",{headers:{authorization:"Bearer synthetic-ci-validation-token-00000000"}});
             const b=await r.json();if(r.status!==200||b.events.length!==1||b.events[0].payload.secret!=="[REDACTED]"||!b.persistent)throw Error("Restart verification failed");
           '
+
+      - name: Check private Hostinger Compose profile
+        run: npm run test:hostinger

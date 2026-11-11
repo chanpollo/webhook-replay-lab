@@ -1,3 +1,11 @@
+# Changelog
+
+## 0.2.0-beta.2
+
+- Add a dedicated Hostinger VPS Compose profile with private loopback access, encrypted named-volume storage and signed ingress disabled.
+- Add an isolated Docker regression test for the profile and deployment/partner-readiness documentation.
+- Keep the JavaScript/Node.js stack and existing UI/screenshots. No live Hostinger deployment or program acceptance is claimed.
+
 # v0.2.0-beta.1
 
 - Opt-in AES-256-GCM encrypted snapshots with exclusive writer lock, atomic replacement and fsync; restore/failure tests.

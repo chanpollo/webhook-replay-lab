@@ -1,6 +1,6 @@
 # Release verification — 2026-11-11
 
-Scope: v0.2.0, a private single-user developer workbench. A stable tool release is not evidence of a live Hostinger deployment or suitability as a public production webhook gateway.
+Scope: v0.2.1, a private single-user developer workbench. A stable tool release is not evidence of a live Hostinger deployment or suitability as a public production webhook gateway.
 
 ## Local and isolated sandbox checks
 

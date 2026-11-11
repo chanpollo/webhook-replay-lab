@@ -11,7 +11,7 @@ Use **VPS + Docker Compose** for this profile. Managed Node.js Web Apps and PHP/
 ## Install on an authorized VPS
 
 1. Choose an already authorized VPS with Docker Engine 28+ and Compose 2.24.4+ installed. Check `docker version` (Server) and `docker compose version` first. Older Docker engines can expose localhost-published ports to neighboring hosts on the same network; loopback publishing alone is not sufficient on those versions. Purchasing a plan, configuring SSH access or changing a firewall are separate operator actions. Do not open port 4319 to the internet.
-2. Clone this public repository and check out `v0.2.0`. Keep the checkout path and Compose project name stable on upgrades.
+2. Clone this public repository and check out `v0.2.1`. Keep the checkout path and Compose project name stable on upgrades.
 3. In the checkout, create a new private `.env` (mode 600) with independently generated random `LAB_TOKEN` (32+ characters) and `LAB_STORAGE_KEY` (64 hexadecimal characters). `openssl rand -hex 32` can generate each independently. Leave `STAGING_ALLOWLIST` empty. Do not overwrite an existing key or paste credentials into shared terminals, tickets, logs or version control. Back up the key separately from the data. Docker administrators can read environment variables.
 4. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml config --quiet`. Do not print/share expanded configuration because it contains secrets.
 5. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml up -d --build` and then `docker compose -p webhook-replay-lab -f compose.hostinger.yaml ps`.

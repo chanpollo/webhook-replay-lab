@@ -2,7 +2,7 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: v0.2.0 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Status: v0.2.1 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Screenshots
 

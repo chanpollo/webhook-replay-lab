@@ -70,7 +70,15 @@ try {
   throw error;
 } finally {
   try {
-    if(started)run([...cleanup,'down','--volumes','--rmi','local']);
+    if(started) {
+      run([...cleanup,'down','--volumes','--rmi','local']);
+      // Compose only removes volumes active in the current service model. The
+      // restore override used a second volume, so explicitly remove this project's
+      // remaining disposable volumes after its containers have been removed.
+      const remaining=run(['volume','ls','--filter','label=com.docker.compose.project='+project,'--format','{{.Name}}']).trim().split(/\s+/).filter(Boolean);
+      for(const name of remaining)assert.ok([project+'_lab-data',project+'_restore-data'].includes(name),'unexpected volume in disposable project');
+      if(remaining.length)run(['volume','rm',...remaining]);
+    }
   } catch(error) {
     if(!failure)throw error;
     console.error('Disposable Docker cleanup failed; inspect project '+project);

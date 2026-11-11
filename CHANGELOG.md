@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 — 2026-11-11
+
+- Fix isolated Docker smoke cleanup to remove its separate restore-test volume as well as the active profile volume. Only exact disposable project labels/names are removed; application behavior is unchanged.
+
 ## 0.2.0 — 2026-11-11
 
 Stable release for private, single-user developer debugging. No Hostinger deployment or public delivery-gateway claim.

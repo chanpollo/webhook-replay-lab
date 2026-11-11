@@ -73,7 +73,7 @@ Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only files
 
 ## Hostinger VPS
 
-Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTINGER.md). It keeps the UI behind SSH forwarding, disables signed ingress, and uses a Docker-managed encrypted-data volume. This is a VPS/Docker path, not PHP shared hosting or a public managed web app. Hostinger deployment and partner-program approval are **not verified**. The existing screenshots above remain representative; this release does not change the UI.
+Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTINGER.md). It keeps the UI behind SSH forwarding, disables signed ingress, and uses a Docker-managed volume containing encrypted snapshots. This is a VPS/Docker path, not PHP shared hosting or a public managed web app. Hostinger deployment and partner-program approval are **not verified**. The existing screenshots above remain representative; this release does not change the UI.
 
 ## Checks
 

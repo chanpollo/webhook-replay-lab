@@ -11,8 +11,10 @@ const project=`lab-hostinger-test-${process.pid}`;
 const env={...process.env, LAB_TOKEN:'synthetic-hostinger-test-token-000000', LAB_STORAGE_KEY:'ab'.repeat(32), STAGING_ALLOWLIST:''};
 const base=['compose','--project-directory',root,'--env-file','/dev/null','-p',project,'-f',join(root,'compose.hostinger.yaml')];
 const run=(args)=>execFileSync('docker',args,{env,encoding:'utf8',timeout:180000,stdio:['ignore','pipe','pipe']});
-let started=false;
+let started=false, failure;
 try {
+  const engine=run(['version','--format','{{.Server.Version}}']).trim();
+  assert.ok(Number(engine.split('.')[0])>=28,'Docker Engine 28+ required for loopback-publish isolation');
   const config=JSON.parse(run([...base,'config','--format','json']));
   const lab=config.services.lab;
   assert.equal(lab.ports.length,1);
@@ -34,7 +36,7 @@ try {
     const r=await fetch('http://127.0.0.1:4319/api/events',{method:'POST',headers,body:JSON.stringify({label:'Synthetic Hostinger profile test',payload:{synthetic:true,password:'redact-me'}})});
     if(r.status!==201)throw Error('capture '+r.status);
     const ingress=await fetch('http://127.0.0.1:4319/ingress',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
-    if(ingress.ok)throw Error('ingress enabled');
+    if(ingress.status!==404)throw Error('ingress must be disabled: '+ingress.status);
     if(process.getuid()===0)throw Error('root user');
   `;
   run([...isolated,'exec','-T','lab','node','--input-type=module','-e',js]);
@@ -46,7 +48,16 @@ try {
     if(r.status!==200||!b.persistent||b.events.length!==1||b.events[0].payload.password!=='[REDACTED]')throw Error('persistence regression');
   `]);
   console.log('Hostinger profile: loopback binding, hardening, non-root capture, disabled ingress, encrypted named-volume restart passed. No Hostinger deployment performed.');
+} catch(error) {
+  failure=error;
+  throw error;
 } finally {
-  if(started)run([...base,'down','--volumes']);
-  rmSync(temp,{recursive:true,force:true});
+  try {
+    if(started)run([...base,'down','--volumes','--rmi','local']);
+  } catch(error) {
+    if(!failure)throw error;
+    console.error('Disposable Docker cleanup failed; inspect project '+project);
+  } finally {
+    rmSync(temp,{recursive:true,force:true});
+  }
 }

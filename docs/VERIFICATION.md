@@ -6,6 +6,8 @@ Scope: v0.2.0-beta.2 private single-user synthetic-data pilot. Not production-re
 
 The beta.2 changes add `compose.hostinger.yaml`, a named-volume private VPS recipe, documentation and an isolated Docker regression test. No application runtime source changed. All 36 Node tests, syntax checks and the existing local-only Playwright suite were rerun successfully. Desktop/mobile screenshots were regenerated with synthetic data and visually inspected. The new profile smoke passed actual capture and sanitized persistence through stop/start, non-root execution, disabled ingress, loopback-only configured binding and hardening checks. Test containers have no external network or published ports and are cleaned up with their disposable volume. This does not verify live Hostinger deployment or actual-host backup restore.
 
+Review follow-up requires Docker Engine 28+ for loopback publishing and Compose 2.24.4+ for the isolation override; the smoke checks disabled ingress returns exactly 404 and removes its generated image as well as container/volume. Cleanup failures preserve the original test error and still remove temporary files.
+
 ## Passed locally
 
 - 36/36 Node unit/API/storage tests on macOS Node 25.2.1, including AES-GCM roundtrip/tamper/wrong-key, exclusive lock, restrictive permissions/symlink/hard-link boundaries, failed commit, 32MiB bounds, signed ingress auth/freshness/dedup, retention/delete, recovered attempts, durable-before-send failures, active-replay deletion race and isolated admin rate budget.

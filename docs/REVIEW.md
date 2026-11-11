@@ -10,9 +10,15 @@ A pre-release review found two functional/security issues in the initial impleme
 
 The requested CK reviewer confirmed the redaction blocker closed on `a24494a` after a source/test read-through. Tests run by the implementation task and GitHub CI remain separate evidence; no unperformed reviewer test run is claimed. The remaining non-blocking AWS access-key field regression has also been added.
 
-## Release checks still required
+## Second review
+
+Agy / Gemini 4 Argon High reviewed the supplied public files at `11db045` and returned **Approve Alpha**, with zero release blockers. This was a source/configuration/documentation review, not an additional runtime test or formal security audit. It confirmed the CK fixes.
+
+Non-blocking follow-ups are tracked in the plan: distinguish a server-rejected replay from an uncertain network outcome in the UI; use own-property checks for prototype-named JSON keys in comparisons; keep the intentional rejection of dual-stack DNS answers clearly documented.
+
+## Publication conditions
 
 - Verify passing CI on the final release commit, not only an earlier revision.
-- Complete or explicitly defer the second requested review; do not claim it occurred without evidence.
+- Both requested reviews are complete. Keep their source-review scope separate from independently executed tests.
 - Keep the local Docker startup limitation distinct from the successful GitHub container-runtime check.
 - Do not imply that synthetic or injected-transport tests constitute a real provider/staging integration test.

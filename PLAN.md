@@ -13,9 +13,9 @@ The first release is `v0.1.0-alpha.1`, an experimental local developer tool. Pas
 - [x] Memory retention and resource limits.
 - [x] Unit/API security checks, local browser smoke, Docker packaging and operating documentation.
 - [x] CK review completed; UTF-8, obvious-secret field coverage and oversized-body regression findings addressed.
-- [ ] Argon review or explicit owner-approved deferral; reviewer identity/integration remains unresolved.
+- [x] Agy / Gemini Argon reviewed public source at `11db045` and approved alpha with no release blockers.
 - [x] Node 22/24 and hardened container runtime CI pass on the reviewed code revision.
-- [ ] Reconfirm CI on the exact final tag commit before publishing the alpha release.
+- Release gate: the exact final tag commit must have green CI before alpha publication.
 
 ## Phase 1 — Reproducible staging workflows
 
@@ -24,7 +24,8 @@ Goal: a teammate can reproduce a sanitized failing webhook without forwarding pr
 - JSON fixture import with version/hash validation and a clear preview.
 - Fixture collections and stable event metadata suitable for Git.
 - CI-friendly replay runner with explicit staging configuration and machine-readable outcomes.
-- Schema-aware diffs that distinguish missing, null and type changes.
+- Schema-aware diffs that distinguish missing, null and type changes; use own-property checks for prototype-named JSON keys.
+- Distinguish server-rejected replay requests from uncertain network delivery in the UI; never label a transport failure as definitely not sent.
 - Browser tests for replay review, cancellation, expiry, repeated send and navigation interruption.
 
 Exit criteria: one documented end-to-end test against an owned, explicitly authorized staging endpoint; fixtures contain no real personal data; replay confirmation and duplicate-prevention tests pass. No promise of exactly-once delivery.

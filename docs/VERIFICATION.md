@@ -12,7 +12,7 @@ Scope: v0.2.0-beta.1 private single-user synthetic-data pilot. Not production-re
 
 ## Release gates
 
-GitHub CI runs Node 22/24 plus isolated hardened container and persistent signed-capture restart. Verify all jobs for the exact release commit before publication.
+GitHub CI passed Node 22/24 plus isolated hardened container and persistent signed-capture restart on implementation commit d013818: https://github.com/chanpollo/webhook-replay-lab/actions/runs/42977300375 . Verify all jobs for the exact release commit before publication.
 
 ## Not performed / not established
 

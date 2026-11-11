@@ -4,8 +4,8 @@ Scope: v0.2.0-beta.1, private single-user synthetic-data pilot with public ingre
 
 - CK reviewed the implementation, ran the initial 35-test suite and locally reproduced a deletion-during-DNS replay journal race and shared ingress/admin rate-budget problem. Both were fixed; regressions now cover active replay deletion and 605 unauthenticated requests without blocking private admin/static/health access.
 - Replay HTTP 5xx responses now preserve uncertain-delivery messaging rather than saying transmission was definitely rejected.
-- CK source-review follow-up found no remaining blocker for private synthetic use with ingress disabled. Final small-fix confirmation is pending.
-- Agy/Gemini Argon reviewed supplied source and returned a partial response before the configured timeout. Its opening verdict found no private synthetic pilot blockers, but its shared-budget finding applied to the earlier source and has since been fixed. A concise follow-up review is pending; do not treat this as a completed public-ingress review.
+- CK source-review follow-up found no remaining blocker for private synthetic use with ingress disabled. Final small-fix source confirmation also returned GO for that restricted scope.
+- Agy/Gemini Argon reviewed supplied source and returned a partial response before the configured timeout. Its opening verdict found no private synthetic pilot blockers, but its shared-budget finding applied to the earlier source and has since been fixed. A completed concise follow-up on the current server/UI confirmed no private-pilot release blockers, including rate-budget separation, durable replay/deletion protection and uncertain-delivery UI. This is not public-ingress approval.
 - Actual local Docker signed synthetic capture and encrypted restart passed independently; no reviewer live-host test is claimed.
 
 Public ingress, a real authorized staging replay, actual-host restore, abuse testing, operational monitoring and a separate deployment threat review remain release-to-production gates. Ingress ships disabled. See SELF_HOSTING.md.

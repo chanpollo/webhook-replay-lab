@@ -4,6 +4,19 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 **Status: v0.2.0-beta.1 private self-host pilot, not production-ready.** Encrypted persistence and optional signed custom ingress are available. No cloud deployment, production routing, automatic retries or live external integration has been verified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
+## Screenshots
+
+Current beta UI using synthetic data only. The sample shows sanitized payload inspection and missing-value-aware comparison. No real customer data or usable credentials are shown.
+
+![Desktop inbox and payload comparison](docs/desktop-preview.png)
+
+<details>
+<summary>Mobile layout (390 px)</summary>
+
+![Mobile inbox, inspection and replay controls](docs/mobile-preview.png)
+
+</details>
+
 ## Start
 
 Requires Node.js 22 or newer (validated on Node 25.2.1).

@@ -36,3 +36,25 @@ jobs:
             sleep 1
           done
           exit 1
+      - name: Check persistent restart and signed ingress
+        shell: bash
+        run: |
+          set -euo pipefail
+          volume=$(docker volume create)
+          cid=$(docker run -d --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --memory 256m --pids-limit 64 -v "$volume:/data" -e LAB_TOKEN=synthetic-ci-validation-token-00000000 -e LAB_DATA_PATH=/data/inbox.enc -e LAB_STORAGE_KEY=$(printf 'ab%.0s' {1..32}) -e LAB_INGRESS_KEY=$(printf 'cd%.0s' {1..32}) webhook-replay-lab:test)
+          trap 'docker rm -f "$cid" >/dev/null 2>&1 || true; docker volume rm "$volume" >/dev/null 2>&1 || true' EXIT
+          sleep 2
+          docker exec "$cid" node --input-type=module -e '
+            import {createHmac} from "node:crypto";
+            const body=JSON.stringify({synthetic:true,secret:"should-be-redacted"}),stamp=String(Math.floor(Date.now()/1000)),id="ci-synthetic";
+            const signature=createHmac("sha256",Buffer.from("cd".repeat(32),"hex")).update(stamp+"."+id+"."+body).digest("hex");
+            const r=await fetch("http://127.0.0.1:4319/ingress",{method:"POST",headers:{"content-type":"application/json","x-lab-timestamp":stamp,"x-lab-event-id":id,"x-lab-signature":"sha256="+signature},body});
+            if(r.status!==201)throw Error("Signed capture failed: "+r.status);
+          '
+          docker stop --time 15 "$cid"
+          docker start "$cid"
+          sleep 2
+          docker exec "$cid" node --input-type=module -e '
+            const r=await fetch("http://127.0.0.1:4319/api/events",{headers:{authorization:"Bearer synthetic-ci-validation-token-00000000"}});
+            const b=await r.json();if(r.status!==200||b.events.length!==1||b.events[0].payload.secret!=="[REDACTED]"||!b.persistent)throw Error("Restart verification failed");
+          '

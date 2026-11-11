@@ -1,26 +1,24 @@
-# Verification — 2026-11-11
+# Beta verification — 2026-11-11
 
-Environment: macOS, Node 25.2.1; official Node 24 Alpine container.
+Scope: v0.2.0-beta.1 private single-user synthetic-data pilot. Not production-ready.
 
-## Passed
+## Passed locally
 
-- 16/16 Node unit/API/security tests: nested redaction and credential-key variants; oversized request rejection; UTF-8 preservation across network chunks; special/private/metadata/IPv6 addresses; exact HTTPS allowlist; all-answer DNS validation; nested comparison; bearer auth, origin and Host checks; capture/export/delete; single-use confirmed sanitized replay; confirmation expiry and event retention; blocked DNS; unknown delivery/no retry; pinned DNS/no redirects via injected transport; event/request/pending-confirmation limits.
-- Syntax checks for server, core and browser JavaScript.
-- Playwright Chromium local browser smoke: unlock; repeated capture click; sanitized inspection; second capture and comparison; fixture download; deletion; token change/wrong token; no browser errors; 390px mobile width without horizontal overflow. All non-local browser requests blocked.
-- Desktop and mobile screenshots inspected visually.
-- Docker Compose configuration validation.
-- Docker image build from official Node 24 Alpine.
-- Container runtime smoke did not complete: Docker left the isolated test container in `created` state, with no process or daemon error reported. The temporary container was removed. Runtime behavior remains unverified; image build and Compose configuration did pass.
+- 36/36 Node unit/API/storage tests on macOS Node 25.2.1, including AES-GCM roundtrip/tamper/wrong-key, exclusive lock, restrictive permissions/symlink/hard-link boundaries, failed commit, 32MiB bounds, signed ingress auth/freshness/dedup, retention/delete, recovered attempts, durable-before-send failures, active-replay deletion race and isolated admin rate budget.
+- Syntax checks for all source modules.
+- Playwright Chromium: unlock, double-click capture, sanitization, diff/export/delete, token reset, mobile layout, replay cancellation/expiry/double click, unknown delivery after connection interruption and reload. All non-local requests blocked, with injected replay transport only. Mobile screenshot visually inspected.
+- Default and pilot Compose configuration checks. Digest-pinned official Node 24 Alpine image build.
+- Actual isolated Docker runtime: `--network none`, non-root/read-only/dropped capabilities, encrypted volume, signed synthetic capture, graceful stop/restart, retained sanitized event. Disposable test container and volume removed. Earlier alpha local Docker startup issue did not recur.
 
-## Published CI
+## Release gates
 
-[Reviewed-code CI run](https://github.com/chanpollo/webhook-replay-lab/actions/runs/42971360310) passed Node 22, Node 24 and the isolated hardened container runtime. The local Docker startup issue does not reproduce in that GitHub runner. Check the release commit's latest CI for subsequent changes.
+GitHub CI runs Node 22/24 plus isolated hardened container and persistent signed-capture restart. Verify all jobs for the exact release commit before publication.
 
-## Not performed
+## Not performed / not established
 
-- No real external webhook transmission. Replay transport is covered by injected/mocked transports; a controlled authorized staging integration remains necessary.
-- No production deployment, public ingress, load test, penetration test, multi-user test, provider-signature verification or persistence/recovery test.
-- Browser replay-confirmation interactions were not exercised end-to-end; confirmation expiry, consumption, blocked destinations and replay outcomes are verified through API tests.
-- Inbox capacity/request-rate/approval limits were tested; no stress test of the response/deep-nesting limits.
+- No live external staging replay, public-host ingress, TLS/proxy routing, actual-host recovery, performance/load/DoS testing, penetration test or formal security audit.
+- No native provider signatures, multi-user isolation, encryption key migration or exactly-once delivery guarantee.
+- No Hostinger deployment. Verified account has Single shared hosting and no suitable VPS; a hosting choice and any needed purchase authorization remain pending.
+- Local snapshot and restart tests do not establish real disk/power-loss durability or backup-restore correctness on an eventual host.
 
-This records pre-publication local verification. See GitHub CI for checks on the published release commit. No service deployment was performed. The local image remains available as `webhook-replay-lab:local`. No development server is left running; use `npm start` when ready.
+No service remains running after these tests. Keep ingress disabled and use synthetic data until the documented host acceptance gates pass.

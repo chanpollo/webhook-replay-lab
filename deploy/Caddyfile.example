@@ -1,0 +1,19 @@
+# Replace with an owned hostname. Keep the admin port bound to loopback.
+# This recipe is not yet verified on an external host.
+webhooks.example.com {
+    @ingress {
+        path /ingress
+        method POST
+    }
+    handle @ingress {
+        request_body {
+            max_size 64KB
+        }
+        reverse_proxy 127.0.0.1:4319 {
+            header_up Host localhost
+        }
+    }
+    handle {
+        respond "Not found" 404
+    }
+}

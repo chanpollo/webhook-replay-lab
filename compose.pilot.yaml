@@ -1,0 +1,13 @@
+services:
+  lab:
+    extends:
+      file: compose.yaml
+      service: lab
+    environment:
+      LAB_DATA_PATH: /data/inbox.enc
+      LAB_STORAGE_KEY: "${LAB_STORAGE_KEY:?Set a 64-character hex encryption key}"
+      LAB_INGRESS_KEY: "${LAB_INGRESS_KEY:-}"
+    volumes:
+      - ./data:/data
+    mem_limit: 256m
+    stop_grace_period: 15s

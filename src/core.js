@@ -32,9 +32,10 @@ export function targetURL(raw, allowlist) {
   if (!allowlist.includes(u.href)) throw new Error('Destination not in operator-confirmed staging allowlist');
   return u;
 }
-export async function resolveTarget(raw, allowlist, resolver = lookup) {
+export async function resolveTarget(raw, allowlist, resolver = lookup, timeoutMs = 2000) {
   const url = targetURL(raw, allowlist);
-  const answers = await resolver(url.hostname, { all:true, verbatim:true });
+  let timer;
+  const answers = await Promise.race([resolver(url.hostname, { all:true, verbatim:true }), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('DNS resolution deadline exceeded')), timeoutMs); })]).finally(() => clearTimeout(timer));
   if (!answers.length || answers.some(a => !publicIPv4(a.address))) throw new Error('Destination DNS includes a non-public or unsupported address');
   return { url, address:answers[0].address };
 }
@@ -64,7 +65,7 @@ export function differences(a,b,path='$',out=[]) {
   if (out.length>=200) return out;
   if (JSON.stringify(a)===JSON.stringify(b)) return out;
   if (a && b && typeof a==='object' && typeof b==='object' && Array.isArray(a)===Array.isArray(b)) {
-    for(const key of new Set([...Object.keys(a),...Object.keys(b)])) differences(a[key],b[key],`${path}.${key}`,out);
-  } else out.push({path,before:a??null,after:b??null});
+    for(const key of new Set([...Object.keys(a),...Object.keys(b)])) differences(Object.hasOwn(a,key)?a[key]:undefined,Object.hasOwn(b,key)?b[key]:undefined,`${path}.${key}`,out);
+  } else out.push({path,before:a??null,after:b??null,...(a===undefined?{beforeMissing:true}:{}),...(b===undefined?{afterMissing:true}:{})});
   return out;
 }

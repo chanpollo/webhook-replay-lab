@@ -1,3 +1,12 @@
+# v0.2.0-beta.1
+
+- Opt-in AES-256-GCM encrypted snapshots with exclusive writer lock, atomic replacement and fsync; restore/failure tests.
+- Persist replay intent before transmission; interrupted sends recover as unknown and never automatically retry.
+- Optional separate-key HMAC ingress with five-minute timestamp window and ten-minute durable dedup, bounded JSON and event capacity.
+- DNS deadline, own-property/missing-value comparisons, explicit uncertain-delivery UI, health endpoint and secret-file support.
+- Private Docker pilot and ingress-only proxy recipe; backup/recovery/rotation documentation.
+- No Hostinger deployment, public TLS/ingress verification or real staging replay performed. Beta only, not production-ready.
+
 # Changelog
 
 ## 0.1.0-alpha.1

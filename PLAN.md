@@ -1,3 +1,9 @@
+# Current release: v0.2.0-beta.1
+
+Private self-host pilot, not production-ready. Added encrypted persistent snapshots, crash-aware replay records, bounded signed custom ingress, DNS deadlines, recovery/backup instructions and regression tests. Hostinger deployment is blocked: the verified account has Single shared hosting and no VPS. No paid provisioning authorized. Actual host restore/TLS/proxy/abuse checks and real external staging replay remain mandatory gates. Native provider adapters, multi-user isolation, comprehensive DLP, key migration and delivery guarantees are not implemented.
+
+The earlier phase plan below is retained as roadmap/history; completed beta features do not mean every phase exit criterion passed.
+
 # Development plan
 
 ## Release policy

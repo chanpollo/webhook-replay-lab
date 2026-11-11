@@ -2,7 +2,7 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: working local MVP, not production-ready.** No cloud service, public inbox, telemetry, production routing, automatic retries, or real external replay is enabled by default.
+**Status: v0.2.0-beta.1 private self-host pilot, not production-ready.** Encrypted persistence and optional signed custom ingress are available. No cloud deployment, production routing, automatic retries or live external integration has been verified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Start
 
@@ -20,7 +20,7 @@ Open http://127.0.0.1:4319 and paste the session token printed in your terminal.
 4. Change the synthetic amount, capture a second event, then compare it with the first.
 5. Delete events you no longer need.
 
-Storage is **memory-only**: restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
+Default storage is **memory-only** (the opt-in pilot uses encrypted snapshots): restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
 
 ## Optional staging replay
 
@@ -32,7 +32,7 @@ STAGING_ALLOWLIST='https://your-confirmed-staging.example/webhooks/test' npm sta
 
 Comma-separated exact HTTPS URLs are accepted. No query strings, fragments, URL credentials, IP literals, or ports other than 443. Do not put secrets in URL paths. Each replay requires reviewing the destination and payload hash and typing `SEND TO STAGING`; confirmation expires after 60 seconds and is consumed before network activity. There are no automatic retries. Inspect an unknown-delivery result at the destination before considering another attempt.
 
-All DNS answers must be public IPv4. Dual-stack hostnames are rejected when the resolver returns IPv6 answers. The validated address is pinned to the TLS connection while the original hostname remains the certificate/SNI authority. IPv6 and special/private/metadata addresses fail closed. Redirects are reported but never followed. The request has a five-second transport deadline and a 64 KB response limit; response bodies and headers are not stored. A fresh idempotency key is provided, but receiver support is unknown and this is **not** a guarantee against duplicate effects.
+All DNS answers must be public IPv4. Dual-stack hostnames are rejected when the resolver returns IPv6 answers. The validated address is pinned to the TLS connection while the original hostname remains the certificate/SNI authority. IPv6 and special/private/metadata addresses fail closed. Redirects are reported but never followed. DNS has a two-second deadline; the request has a five-second transport deadline and a 64 KB response limit; response bodies and headers are not stored. A fresh idempotency key is provided, but receiver support is unknown and this is **not** a guarantee against duplicate effects.
 
 Replay sends only sanitized JSON and newly generated minimal headers. It does not forward authentication, cookies or original provider signatures. This may intentionally break a provider-specific signature check. Use a dedicated staging adapter; do not disable verification on a production endpoint.
 
@@ -56,7 +56,7 @@ export LAB_TOKEN="$(openssl rand -hex 32)"
 docker compose up --build
 ```
 
-Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote Hostinger VPS would require SSH forwarding for this current private UI; public provider ingress is out of scope. No deployment has been performed.
+Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional pilot exposes only a custom signed capture route, not native provider signatures. No deployment has been performed.
 
 ## Checks
 
@@ -78,9 +78,9 @@ The browser test blocks all non-local requests. It covers unlocking, repeated ca
 
 - 64 KB inbound JSON; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
 - Redaction uses sensitive field-name matching and email/Bearer patterns. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
-- Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values and explicit null both display as null.
-- Single-user token, no tenant isolation, SSO/RBAC, persistent audit log, encryption-at-rest store, signature verification, scheduling or delivery queue.
-- No public provider receiver or outbound authentication. No guarantee of exactly-once delivery.
+- Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values are marked separately from explicit null; own-property checks handle prototype-named fields.
+- Single-user token, no tenant isolation, SSO/RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.
+- Custom signed ingress only, no native provider adapters or outbound authentication. No guarantee of exactly-once delivery.
 - This is a bounded developer tool, not a hardened internet-facing security product. See [security notes](docs/SECURITY.md), [product hypothesis](docs/PRODUCT.md), and [verification](docs/VERIFICATION.md).
 
 ## License

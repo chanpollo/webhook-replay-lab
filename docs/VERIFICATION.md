@@ -1,30 +1,30 @@
-# Beta verification — 2026-11-11
+# Release verification — 2026-11-11
 
-Scope: v0.2.0-beta.2 private single-user synthetic-data pilot. Not production-ready.
+Scope: v0.2.0, a private single-user developer workbench. A stable tool release is not evidence of a live Hostinger deployment or suitability as a public production webhook gateway.
 
-## Hostinger compatibility release
+## Local and isolated sandbox checks
 
-The beta.2 changes add `compose.hostinger.yaml`, a named-volume private VPS recipe, documentation and an isolated Docker regression test. No application runtime source changed. All 36 Node tests, syntax checks and the existing local-only Playwright suite were rerun successfully. Desktop/mobile screenshots were regenerated with synthetic data and visually inspected. The new profile smoke passed actual capture and sanitized persistence through stop/start, non-root execution, disabled ingress, loopback-only configured binding and hardening checks. Test containers have no external network or published ports and are cleaned up with their disposable volume. This does not verify live Hostinger deployment or actual-host backup restore.
+- **42/42 Node tests passed** on macOS Node 25.2.1, with no skips. Coverage includes bearer/origin/Host controls, destination validation, redaction, UTF-8 request chunks, capacity/rate limits, signed ingress freshness/authentication/deduplication, retention, single-use confirmation, and fail-closed storage.
+- **Actual HTTPS transport passed**, using an ephemeral local CA and controlled loopback receiver: sanitized JSON delivery, matching attempt correlation headers, valid TLS, rejection of untrusted certificates and hostname mismatch, no redirect following, 64 KB response cap, partial disconnect and five-second timeout. No automatic retries occurred. Test injection permits loopback only in the test harness; production DNS restrictions remain enabled and are tested separately. No external staging service was contacted.
+- **Encrypted backup and restore passed**, first into a separate local directory, then from a stopped Docker container into a separate empty named volume. The restored event retains its ID and sanitized contents. Wrong keys fail closed and failed startup releases its own lock.
+- **Hostinger Compose sandbox passed**: actual built image, non-root user, read-only root, dropped capabilities, disabled signed ingress, private loopback binding in configuration, encrypted persistence across graceful restart, and separate-volume restoration. Runtime test containers have no network and no published host ports. Disposable resources are removed after tests.
+- **Browser regression suite passed** in local Playwright Chromium: unlocking, double-click capture, redaction, compare/export/delete, mobile overflow, cancellation, expiry, repeated replay click, lost response, reload, stale approval after selection change, and stale inbox response after token change. Browser replay uses an injected transport, not a real remote endpoint; the independent HTTPS suite tests real sockets.
+- **Redesigned UI verified** at 320, 390, 720, 1024 and 1440 px widths, with labeled controls, 44 px minimum buttons, visible focus styles and keyboard skip navigation. Desktop/mobile screenshots were regenerated and visually inspected.
+- **Syntax checks passed** for all four runtime modules. CI actions are pinned by exact commit; the Node 24 Alpine image is pinned by digest.
+- **Independent source reviews completed** for auth, persistence, replay/SSRF/TLS and UI races. Review reproduced an approval expiring during POST body receipt; the release rechecks expiry at consumption and includes the regression test. Source review is not an external penetration test or certification.
 
-Review follow-up requires Docker Engine 28+ for loopback publishing and Compose 2.24.4+ for the isolation override; the smoke checks disabled ingress returns exactly 404 and removes its generated image as well as container/volume. Cleanup failures preserve the original test error and still remove temporary files.
+The final release must also pass its GitHub CI jobs on the exact release commit: Node 22 and 24, hardened container startup, persistent signed ingress/restart, and the Hostinger Compose sandbox. See the repository's Actions tab and the release commit, rather than treating a previous commit's CI as current evidence.
 
-## Passed locally
+## Security scan limitation
 
-- 36/36 Node unit/API/storage tests on macOS Node 25.2.1, including AES-GCM roundtrip/tamper/wrong-key, exclusive lock, restrictive permissions/symlink/hard-link boundaries, failed commit, 32MiB bounds, signed ingress auth/freshness/dedup, retention/delete, recovered attempts, durable-before-send failures, active-replay deletion race and isolated admin rate budget.
-- Syntax checks for all source modules.
-- Playwright Chromium: unlock, double-click capture, sanitization, diff/export/delete, token reset, mobile layout, replay cancellation/expiry/double click, unknown delivery after connection interruption and reload. All non-local requests blocked, with injected replay transport only. Mobile screenshot visually inspected.
-- Default and pilot Compose configuration checks. Digest-pinned official Node 24 Alpine image build.
-- Actual isolated Docker runtime: `--network none`, non-root/read-only/dropped capabilities, encrypted volume, signed synthetic capture, graceful stop/restart, retained sanitized event. Disposable test container and volume removed. Earlier alpha local Docker startup issue did not recur.
+Docker Scout was attempted for the pinned public Node base image. The installed Scout requires Docker authentication and no scan result was obtained. No alternative scanner was installed. This release does not claim a clean CVE scan. Operators should scan the final image using their authorized registry/scanner and keep the pinned runtime updated.
 
-## Release gates
+## Boundaries and unverified deployment work
 
-GitHub CI passed Node 22/24 plus isolated hardened container and persistent signed-capture restart on implementation commit d013818: https://github.com/chanpollo/webhook-replay-lab/actions/runs/42977300375 . Verify all jobs for the exact release commit before publication.
+- No live Hostinger deployment, public TLS/proxy/ingress routing, actual-host firewall, backup recovery or external staging integration has been verified.
+- A suitable authorized VPS/Docker host is required; PHP/shared hosting is not this runtime. No plan purchase, existing-site replacement or partner-program acceptance is included.
+- No native provider signatures, multi-user isolation, encryption-key migration, delivery queue or exactly-once guarantee.
+- Replay history has at most 20 attempts per event and 24-hour event retention. Attempt IDs enable receiver-log correlation; no OpenTelemetry, W3C trace propagation or cross-service spans are implemented.
+- No load/DoS test, independent penetration test, hardware power-loss durability guarantee or formal security audit is claimed.
 
-## Not performed / not established
-
-- No live external staging replay, public-host ingress, TLS/proxy routing, actual-host recovery, performance/load/DoS testing, penetration test or formal security audit.
-- No native provider signatures, multi-user isolation, encryption key migration or exactly-once delivery guarantee.
-- No Hostinger deployment. Verified account has Single shared hosting and no suitable VPS; a hosting choice and any needed purchase authorization remain pending.
-- Local snapshot and restart tests do not establish real disk/power-loss durability or backup-restore correctness on an eventual host.
-
-No service remains running after these tests. Keep ingress disabled and use synthetic data until the documented host acceptance gates pass.
+Use synthetic data for installation acceptance and review redaction before handling your own integration data. Keep the UI private and do not route production webhook traffic through this debugging tool.

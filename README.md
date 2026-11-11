@@ -2,11 +2,11 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: v0.2.0-beta.2 private self-host pilot, not production-ready.** Encrypted persistence and optional signed custom ingress are available. No cloud deployment, production routing, automatic retries or live external integration has been verified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Status: v0.2.0 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Screenshots
 
-Current beta UI using synthetic data only. The sample shows sanitized payload inspection and missing-value-aware comparison. No real customer data or usable credentials are shown.
+Responsive private workbench with separate capture, inbox, inspection and replay panels, keyboard navigation and mobile layouts. Screenshots use synthetic data only. The sample shows sanitized payload inspection and missing-value-aware comparison. No real customer data or usable credentials are shown.
 
 ![Desktop inbox and payload comparison](docs/desktop-preview.png)
 
@@ -19,7 +19,7 @@ Current beta UI using synthetic data only. The sample shows sanitized payload in
 
 ## Start
 
-Requires Node.js 22 or newer (validated on Node 25.2.1).
+Requires Node.js 22 or newer (container: Node 24; local verification: Node 25.2.1).
 
 ```sh
 npm start
@@ -33,7 +33,7 @@ Open http://127.0.0.1:4319 and paste the session token printed in your terminal.
 4. Change the synthetic amount, capture a second event, then compare it with the first.
 5. Delete events you no longer need.
 
-Default storage is **memory-only** (the opt-in pilot uses encrypted snapshots): restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
+Default storage is **memory-only** (the self-hosted profiles use encrypted snapshots): restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
 
 ## Optional staging replay
 
@@ -45,7 +45,7 @@ STAGING_ALLOWLIST='https://your-confirmed-staging.example/webhooks/test' npm sta
 
 Comma-separated exact HTTPS URLs are accepted. No query strings, fragments, URL credentials, IP literals, or ports other than 443. Do not put secrets in URL paths. Each replay requires reviewing the destination and payload hash and typing `SEND TO STAGING`; confirmation expires after 60 seconds and is consumed before network activity. There are no automatic retries. Inspect an unknown-delivery result at the destination before considering another attempt.
 
-All DNS answers must be public IPv4. Dual-stack hostnames are rejected when the resolver returns IPv6 answers. The validated address is pinned to the TLS connection while the original hostname remains the certificate/SNI authority. IPv6 and special/private/metadata addresses fail closed. Redirects are reported but never followed. DNS has a two-second deadline; the request has a five-second transport deadline and a 64 KB response limit; response bodies and headers are not stored. A fresh idempotency key is provided, but receiver support is unknown and this is **not** a guarantee against duplicate effects.
+All DNS answers must be public IPv4. Dual-stack hostnames are rejected when the resolver returns IPv6 answers. The validated address is pinned to the TLS connection while the original hostname remains the certificate/SNI authority. IPv6 and special/private/metadata addresses fail closed. Redirects are reported but never followed. DNS has a two-second deadline; the request has a five-second transport deadline and a 64 KB response limit; response bodies and headers are not stored. Each replay attempt ID is persisted before sending and transmitted as both `Idempotency-Key` and `X-Webhook-Replay-Attempt`. Use that ID to find an uncertain attempt in receiver logs. A new attempt gets a new key; receiver support is unknown and this is **not** a guarantee against duplicate effects.
 
 Replay sends only sanitized JSON and newly generated minimal headers. It does not forward authentication, cookies or original provider signatures. This may intentionally break a provider-specific signature check. Use a dedicated staging adapter; do not disable verification on a production endpoint.
 
@@ -69,13 +69,15 @@ export LAB_TOKEN="$(openssl rand -hex 32)"
 docker compose up --build
 ```
 
-Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional pilot exposes only a custom signed capture route, not native provider signatures. No deployment has been performed.
+Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional ingress profile exposes only a custom signed capture route, not native provider signatures. No deployment has been performed.
 
 ## Hostinger VPS
 
-Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTINGER.md). It keeps the UI behind SSH forwarding, disables signed ingress, and uses a Docker-managed volume containing encrypted snapshots. This is a VPS/Docker path, not PHP shared hosting or a public managed web app. Hostinger deployment and partner-program approval are **not verified**. The existing screenshots above remain representative; this release does not change the UI.
+Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTINGER.md). It keeps the UI behind SSH forwarding, disables signed ingress, and uses a Docker-managed volume containing encrypted snapshots. This is a VPS/Docker path, not PHP shared hosting or a public managed web app. Hostinger deployment and partner-program approval are **not verified**. The desktop and mobile screenshots above show the current private workbench.
 
 ## Checks
+
+Tests require Node.js 22+ and OpenSSL on PATH (for a temporary local TLS certificate). Tests use synthetic data; the HTTPS transport tests never contact an external endpoint or weaken production destination validation.
 
 ```sh
 npm test
@@ -93,7 +95,7 @@ The browser test blocks all non-local requests. It covers unlocking, repeated ca
 
 ## Limits and honest boundaries
 
-- 64 KB inbound JSON; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
+- 64 KB inbound JSON and newly sanitized payloads; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
 - Redaction uses sensitive field-name matching and email/Bearer patterns. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
 - Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values are marked separately from explicit null; own-property checks handle prototype-named fields.
 - Single-user token, no tenant isolation, SSO/RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.

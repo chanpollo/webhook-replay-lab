@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
-import {mkdtempSync, writeFileSync, rmSync} from 'node:fs';
+import {mkdtempSync, writeFileSync, readFileSync, chmodSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -11,7 +11,7 @@ const project=`lab-hostinger-test-${process.pid}`;
 const env={...process.env, LAB_TOKEN:'synthetic-hostinger-test-token-000000', LAB_STORAGE_KEY:'ab'.repeat(32), STAGING_ALLOWLIST:''};
 const base=['compose','--project-directory',root,'--env-file','/dev/null','-p',project,'-f',join(root,'compose.hostinger.yaml')];
 const run=(args)=>execFileSync('docker',args,{env,encoding:'utf8',timeout:180000,stdio:['ignore','pipe','pipe']});
-let started=false, failure;
+let started=false, failure, cleanup=base;
 try {
   const engine=run(['version','--format','{{.Server.Version}}']).trim();
   assert.ok(Number(engine.split('.')[0])>=28,'Docker Engine 28+ required for loopback-publish isolation');
@@ -27,8 +27,8 @@ try {
   assert.equal(lab.volumes[0].type,'volume');
   // Exercise the actual profile without host ports or any outbound network.
   const override=join(temp,'isolated.yaml');
-  writeFileSync(override,'services:\n  lab:\n    ports: !reset []\n    network_mode: none\n');
-  const isolated=[...base,'-f',override];
+  writeFileSync(override,'services:\n  lab:\n    ports: !reset []\n    network_mode: none\nvolumes:\n  restore-data:\n');
+  const isolated=[...base,'-f',override];cleanup=isolated;
   started=true;
   run([...isolated,'up','-d','--build','--wait','--wait-timeout','30']);
   const js=`
@@ -47,13 +47,30 @@ try {
     const b=await r.json();
     if(r.status!==200||!b.persistent||b.events.length!==1||b.events[0].payload.password!=='[REDACTED]')throw Error('persistence regression');
   `]);
-  console.log('Hostinger profile: loopback binding, hardening, non-root capture, disabled ingress, encrypted named-volume restart passed. No Hostinger deployment performed.');
+  // Restore an actual stopped-container backup into a separate empty named volume.
+  run([...isolated,'stop']);
+  const backup=join(temp,'backup.enc');
+  run([...isolated,'cp','lab:/data/inbox.enc',backup]);chmodSync(backup,0o600);
+  const restore=join(temp,'restore.yaml');
+  writeFileSync(restore,'services:\n  lab:\n    volumes: !override\n      - restore-data:/data\n');
+  const restored=[...isolated,'-f',restore];
+  run([...restored,'run','--rm','--no-deps','lab','node','--input-type=module','-e',`
+    import {writeFileSync} from 'node:fs';
+    writeFileSync('/data/inbox.enc',Buffer.from(process.argv[1],'base64'),{mode:0o600,flag:'wx'});
+  `,readFileSync(backup).toString('base64')]);
+  run([...restored,'up','-d','--force-recreate','--wait','--wait-timeout','30']);
+  run([...restored,'exec','-T','lab','node','--input-type=module','-e',`
+    const r=await fetch('http://127.0.0.1:4319/api/events',{headers:{authorization:'Bearer '+process.env.LAB_TOKEN}});
+    const b=await r.json();
+    if(r.status!==200||b.events.length!==1||b.events[0].payload.password!=='[REDACTED]')throw Error('isolated backup restore regression');
+  `]);
+  console.log('Hostinger profile: loopback binding, hardening, non-root capture, disabled ingress, encrypted named-volume restart and separate-volume backup restoration passed. No Hostinger deployment performed.');
 } catch(error) {
   failure=error;
   throw error;
 } finally {
   try {
-    if(started)run([...base,'down','--volumes','--rmi','local']);
+    if(started)run([...cleanup,'down','--volumes','--rmi','local']);
   } catch(error) {
     if(!failure)throw error;
     console.error('Disposable Docker cleanup failed; inspect project '+project);

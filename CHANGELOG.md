@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0 — 2026-11-11
+
+Stable release for private, single-user developer debugging. No Hostinger deployment or public delivery-gateway claim.
+
+- Persist and send the same replay attempt ID for receiver-side investigation of uncertain delivery.
+- Recheck approval expiry at consumption, including requests whose bodies arrive across the deadline.
+- Prevent stale inbox responses after token changes and stale replay reviews after selection/cancellation changes.
+- Validate restored state before recovery, release own locks on failed startup, and bound sanitized payload expansion.
+- Exercise real loopback HTTPS: delivery, TLS trust/hostname enforcement, redirects, size cap, disconnect and timeout, with no automatic retry.
+- Verify encrypted backup restoration into a separate local directory and isolated Docker named volume.
+- Redesign the responsive workbench with distinct capture/inbox/inspect/replay panels, visible focus states, clear labels and keyboard skip navigation.
+- Pin CI actions by commit and refresh private deployment/security boundaries.
+
+
 ## 0.2.0-beta.2
 
 - Add a dedicated Hostinger VPS Compose profile with private loopback access, encrypted named-volume storage and signed ingress disabled.

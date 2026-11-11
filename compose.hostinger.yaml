@@ -1,4 +1,4 @@
-# Private Hostinger VPS pilot. Not a managed Web Apps or public admin deployment.
+# Private Hostinger VPS developer workbench. Not a managed Web Apps or public admin deployment.
 services:
   lab:
     build: .

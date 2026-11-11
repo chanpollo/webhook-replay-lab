@@ -62,3 +62,19 @@ test('capture rejects a request larger than 64 KB with 413',async t=>{
  const f=await fixture(t);assert.equal((await f.request('events',{payload:{text:'x'.repeat(66000)}})).status,413);
  assert.equal((await f.request('events')).data.events.length,0);
 });
+
+test('confirmation expiring while POST body is arriving cannot send',async t=>{
+ const f=await fixture(t);
+ const event=(await f.request('events',{payload:{v:1}})).data;
+ const approval=(await f.request('prepare',{id:event.id,url})).data;
+ f.advance(59000);
+ const seen=new Promise(r=>f.server.once('request',r));
+ let request;
+ const result=new Promise((resolve,reject)=>{
+  request=http.request(f.base+'/api/replay',{method:'POST',headers:{authorization:'Bearer '+token,'content-type':'application/json'}},res=>{let body='';res.on('data',chunk=>body+=chunk);res.on('end',()=>resolve({status:res.statusCode,data:JSON.parse(body)}));});
+  request.on('error',reject);request.write('{');
+ });
+ await seen;f.advance(2000);
+ request.end(JSON.stringify({nonce:approval.nonce,confirm:'SEND TO STAGING'}).slice(1));
+ assert.equal((await result).status,400);assert.equal(f.calls.length,0);
+});

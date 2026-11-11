@@ -1,6 +1,6 @@
-# Private self-host pilot (beta)
+# Private self-hosted developer tool
 
-This is a single-process, single-user **pilot**, not a production delivery gateway. The signed receiver is a custom protocol, not a Stripe/GitHub signature adapter. No live Hostinger deployment or real external replay has been verified. The inspected Hostinger account has Single shared hosting and no VPS; it cannot run this Docker service. Obtain an authorized VPS or compatible Docker host before deployment. Do not replace an existing website.
+This is a stable single-process, single-user developer workbench, not a production delivery gateway. The signed receiver is a custom protocol, not a Stripe/GitHub signature adapter. Real HTTPS replay has been verified against controlled local receivers, and encrypted backup restoration has passed in an isolated Docker sandbox. No live Hostinger deployment or external staging integration has been verified. A PHP/shared-hosting plan cannot run this Docker service. Obtain an authorized VPS or compatible Docker host before deployment. Do not replace an existing website.
 
 ## Private install
 
@@ -41,7 +41,7 @@ A valid signed duplicate ID is acknowledged without another event for ten minute
 
 Only expose the exact POST route over TLS, using `deploy/Caddyfile.example` as an **untested deployment recipe**. Keep admin routes inaccessible publicly. Add network-level abuse controls, monitoring and a request-size/time limit, configure DNS and TLS for a hostname you own, and confirm every other route returns 404. The public ingress budget can be exhausted by attackers (authenticated admin has a separate budget); this is not DDoS protection. The proxy must preserve raw body bytes and must not strip Origin to bypass browser-origin protections. Do not log credentials or payloads.
 
-## Deployment acceptance gate (not yet passed)
+## Actual-host acceptance checks (not yet passed)
 
 - Authorized VPS/runtime, owned domain, TLS and restricted firewall/proxy checked.
 - Public admin paths inaccessible; authenticated signed synthetic ingress succeeds and bad/expired signatures fail.
@@ -49,7 +49,7 @@ Only expose the exact POST route over TLS, using `deploy/Caddyfile.example` as a
 - A real replay to an owned, explicitly authorized harmless HTTPS staging endpoint succeeds; redirect/private-DNS denial verified.
 - Capacity/abuse tests, operational monitoring, independent security review and recovery ownership accepted.
 
-Until those gates pass, use privately with synthetic data. Do not route production webhook traffic through it.
+Private local debugging and the isolated self-host profile are tested release workflows. Use synthetic data for installation checks; review redaction before using your own integration data. Host-specific checks remain required before relying on a remote installation. Do not route production webhook traffic through it.
 
 ## Image update policy
 

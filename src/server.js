@@ -5,12 +5,42 @@ import { fileURLToPath } from 'node:url';
 import { createStore } from './store.js';
 import { redact, digest, targetURL, resolveTarget, transmit, differences } from './core.js';
 
-export function createLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null}={}) {
+function boundedPayload(value) {
+  const payload=redact(value);
+  if(Buffer.byteLength(JSON.stringify(payload))>65536)throw new Error('Sanitized payload exceeds the 64 KB storage limit');
+  return payload;
+}
+// Validate an authenticated snapshot before constructing maps or recovering attempts.
+// This is a compatibility gate for restoration, not a redaction migration.
+function validateState(state) {
+  const ids=new Set(),receiptIds=new Set();
+  for(const event of state.events) {
+    if(!event || typeof event.id!=='string' || !/^[A-Za-z0-9_-]{1,128}$/.test(event.id) || ids.has(event.id) || !Number.isSafeInteger(event.createdAt) || event.createdAt<0 || typeof event.label!=='string' || event.label.length>80 || !event.payload || typeof event.payload!=='object' || !Array.isArray(event.attempts) || event.attempts.length>20)throw new Error('Invalid persisted event');
+    ids.add(event.id);
+    // Accept existing v1 redacted payloads, including those larger than the new capture cap.
+    redact(event.payload); // Enforce the nesting bound without changing stored content/hash.
+    for(const attempt of event.attempts) {
+      if(!attempt || !['validating','sending','blocked','unknown_delivery','response_received'].includes(attempt.outcome))throw new Error('Invalid persisted replay attempt');
+    }
+  }
+  for(const receipt of state.receipts) {
+    if(!Array.isArray(receipt) || receipt.length!==2 || typeof receipt[0]!=='string' || !/^[A-Za-z0-9_-]{1,128}$/.test(receipt[0]) || receiptIds.has(receipt[0]) || !Number.isSafeInteger(receipt[1]) || receipt[1]<0)throw new Error('Invalid persisted ingress receipt');
+    receiptIds.add(receipt[0]);
+  }
+}
+
+// Failed startup releases its own lock, never another writer's lock.
+export function createLab(options={}) {
+  try { return buildLab(options); }
+  catch(error) { try { options.store?.close(); } catch {} throw error; }
+}
+function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null}={}) {
   if (!token || token.length<32) throw new Error('Admin token must have at least 32 characters');
   allowlist.forEach(url=>targetURL(url,allowlist));
   if (ingressKey && (!store || !/^[a-f0-9]{64}$/i.test(ingressKey))) throw new Error('Ingress requires persistent storage and a 32-byte hex signing key');
-  const initial=store?.load();
-  if(initial && (initial.version!==1 || !Array.isArray(initial.events) || initial.events.length>200 || !Array.isArray(initial.receipts) || initial.receipts.length>2000)) throw new Error('Invalid persisted state');
+  const initial=store?store.load():null;
+  if(initial!==null && (typeof initial!=='object' || initial.version!==1 || !Array.isArray(initial.events) || initial.events.length>200 || !Array.isArray(initial.receipts) || initial.receipts.length>2000)) throw new Error('Invalid persisted state');
+  if(initial)validateState(initial);
   const events = new Map((initial?.events||[]).map(e=>[e.id,e])), approvals = new Map(), receipts=new Map(initial?.receipts||[]);
   let storageHealthy=true;
   const persist=()=>{try{store?.save({version:1,events:[...events.values()],receipts:[...receipts]});}catch{storageHealthy=false;throw new Error('Storage unavailable; stop and restore before continuing');}};
@@ -68,14 +98,14 @@ export function createLab({token, allowlist=[], send=transmit, resolve=resolveTa
         if(++ingressRequests>120)return reply(429,{error:'Signed ingress request limit exceeded'});
         if(receipts.has(id))return reply(200,{duplicate:true});
         if(events.size>=200||receipts.size>=2000)return reply(409,{error:'Inbox or receipt capacity reached'});
-        const event={id:randomUUID(),createdAt:now(),payload:redact(input),label:'Signed ingress',attempts:[]};
+        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input),label:'Signed ingress',attempts:[]};
         events.set(event.id,event);receipts.set(id,now());persist();return reply(201,{id:event.id});
       }
       if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,persistent:!!store,ingressEnabled:!!ingressKey});
       if(req.method==='POST' && req.url==='/api/events') {
         if(events.size>=200) return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
         if(!input.payload || typeof input.payload!=='object') return reply(400,{error:'JSON object or array payload required'});
-        const event={id:randomUUID(),createdAt:now(),payload:redact(input.payload),label:redact(String(input.label||'Captured JSON')).slice(0,80),attempts:[]};
+        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input.payload),label:redact(String(input.label||'Captured JSON')).slice(0,80),attempts:[]};
         events.set(event.id,event);persist();return reply(201,event);
       }
       const fixture=req.url?.match(/^\/api\/events\/([\w-]+)\/fixture$/);
@@ -96,7 +126,7 @@ export function createLab({token, allowlist=[], send=transmit, resolve=resolveTa
       }
       if(req.method==='POST' && req.url==='/api/replay') {
         const approval=approvals.get(input.nonce);
-        if(!approval || input.confirm!=='SEND TO STAGING')return reply(400,{error:'Valid unexpired one-time approval and confirmation phrase required'});
+        if(!approval || now()>=approval.expires || input.confirm!=='SEND TO STAGING')return reply(400,{error:'Valid unexpired one-time approval and confirmation phrase required'});
         const event=events.get(approval.id);if(!event||digest(event.payload)!==approval.hash)return reply(409,{error:'Payload changed or expired'});
         if(now()<nextReplay)return reply(429,{error:'Wait 5 seconds between replay attempts'});
         approvals.delete(input.nonce);nextReplay=now()+5000;
@@ -107,8 +137,8 @@ export function createLab({token, allowlist=[], send=transmit, resolve=resolveTa
           const target=await resolve(approval.url,allowlist);
           if(events.get(event.id)!==event||now()-event.createdAt>=ttl)throw new Error('Event expired or removed before transmission');
           attempt.outcome='sending';persist();
-          Object.assign(attempt,await send(target,event.payload),{outcome:'response_received'});
-        } catch(error){attempt.error=error.message;attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';}
+          Object.assign(attempt,await send(target,event.payload,{attemptId:attempt.id}),{outcome:'response_received'});
+        } catch(error){attempt.error=String(error.message).slice(0,1024);attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';}
         persist();return reply(200,attempt);
       }
       reply(404,{error:'Not found'});

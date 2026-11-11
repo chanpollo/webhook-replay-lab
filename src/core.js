@@ -39,14 +39,15 @@ export async function resolveTarget(raw, allowlist, resolver = lookup, timeoutMs
   if (!answers.length || answers.some(a => !publicIPv4(a.address))) throw new Error('Destination DNS includes a non-public or unsupported address');
   return { url, address:answers[0].address };
 }
-export async function transmit(target, body) {
+export async function transmit(target, body, {attemptId=randomUUID()} = {}) {
+  if (typeof attemptId !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(attemptId)) throw new Error('Invalid replay attempt ID');
   return new Promise((resolve,reject) => {
     const data = JSON.stringify(body);
     const started = Date.now();
     const req = https.request(target.url, {
       method:'POST', agent:false, family:4,
       lookup:(_host, options, cb) => options.all ? cb(null,[{address:target.address,family:4}]) : cb(null,target.address,4),
-      headers:{'content-type':'application/json','content-length':Buffer.byteLength(data),'x-webhook-replay-lab':'staging-replay','idempotency-key':randomUUID()}
+      headers:{'content-type':'application/json','content-length':Buffer.byteLength(data),'x-webhook-replay-lab':'staging-replay','idempotency-key':attemptId,'x-webhook-replay-attempt':attemptId}
     }, res => {
       // Never follow redirects or retain response bodies/headers that may contain secrets.
       res.resume();

@@ -1,6 +1,6 @@
 # Hostinger VPS compatibility
 
-This profile packages the **private synthetic-data pilot** for a Linux VPS with Docker Engine 28 or newer and Docker Compose 2.24.4 or newer. It has not been deployed on Hostinger or accepted into Hostinger's developer program. It is not an automatic public webhook service. Do not replace an existing website.
+This profile packages the **private developer workbench** for a Linux VPS with Docker Engine 28 or newer and Docker Compose 2.24.4 or newer. It has not been deployed on Hostinger or accepted into Hostinger's developer program. It is not an automatic public webhook service. Do not replace an existing website.
 
 ## Language and hosting choice
 
@@ -11,12 +11,12 @@ Use **VPS + Docker Compose** for this profile. Managed Node.js Web Apps and PHP/
 ## Install on an authorized VPS
 
 1. Choose an already authorized VPS with Docker Engine 28+ and Compose 2.24.4+ installed. Check `docker version` (Server) and `docker compose version` first. Older Docker engines can expose localhost-published ports to neighboring hosts on the same network; loopback publishing alone is not sufficient on those versions. Purchasing a plan, configuring SSH access or changing a firewall are separate operator actions. Do not open port 4319 to the internet.
-2. Clone this public repository and check out `v0.2.0-beta.2`. Keep the checkout path and Compose project name stable on upgrades.
+2. Clone this public repository and check out `v0.2.0`. Keep the checkout path and Compose project name stable on upgrades.
 3. In the checkout, create a new private `.env` (mode 600) with independently generated random `LAB_TOKEN` (32+ characters) and `LAB_STORAGE_KEY` (64 hexadecimal characters). `openssl rand -hex 32` can generate each independently. Leave `STAGING_ALLOWLIST` empty. Do not overwrite an existing key or paste credentials into shared terminals, tickets, logs or version control. Back up the key separately from the data. Docker administrators can read environment variables.
 4. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml config --quiet`. Do not print/share expanded configuration because it contains secrets.
 5. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml up -d --build` and then `docker compose -p webhook-replay-lab -f compose.hostinger.yaml ps`.
 6. From your own computer, run `ssh -N -L 127.0.0.1:4319:127.0.0.1:4319 user@your-owned-vps`. Open http://127.0.0.1:4319 and unlock using your token.
-7. Capture synthetic data only, stop/start the service, and verify the same sanitized record remains. Confirm the VPS port is not publicly accessible and complete the applicable acceptance checks in [SELF_HOSTING.md](SELF_HOSTING.md).
+7. Capture synthetic installation-test data, stop/start the service, and verify the same sanitized record remains. Confirm the VPS port is not publicly accessible and complete the applicable acceptance checks in [SELF_HOSTING.md](SELF_HOSTING.md).
 
 The profile initializes a Docker-managed named volume from the image's `/data` directory, owned by the non-root container user. This avoids manual host bind-directory ownership setup. It does **not** import data from `compose.pilot.yaml`. Do not switch an existing pilot expecting its data to appear automatically. Verify a backup and plan migration separately.
 
@@ -30,7 +30,7 @@ Stop the service gracefully before backup. Use `docker compose -p webhook-replay
 
 ## Local verification
 
-Run `npm test`, `npm run check` and `npm run test:hostinger` with Docker available. The Hostinger smoke test uses an isolated disposable Compose project, synthetic credentials, no published ports and no external container network. It verifies the real profile's loopback binding, non-root hardening, disabled ingress, synthetic capture, and encrypted named-volume persistence across a graceful restart. It removes only its generated test resources. This is local/container verification, not evidence of a live Hostinger deployment or backup restore.
+Run `npm test`, `npm run check` and `npm run test:hostinger` with Docker available. The Hostinger smoke test uses an isolated disposable Compose project, synthetic credentials, no published ports and no external container network. It verifies the real profile's loopback binding, non-root hardening, disabled ingress, synthetic capture, and encrypted named-volume persistence across a graceful restart. It removes only its generated test resources. It also copies an actual stopped-container encrypted backup and restores it into a separate empty named volume, then verifies the restored event. This is local/container verification, not evidence of a live Hostinger deployment or actual-host recovery.
 
 ## Open-source partner checklist
 

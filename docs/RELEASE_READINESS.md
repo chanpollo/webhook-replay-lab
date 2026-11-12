@@ -1,6 +1,6 @@
 # v1 readiness
 
-Checked 2026-11-12. **Not v1 release-ready.** The source candidate can be reviewed independently of a formal release. No v1 tag or actual-host deployment is claimed.
+Checked 2026-11-12. **Not v1 release-ready.** The source candidate can be reviewed independently of a formal release. No v1 tag or permanent live deployment is claimed; temporary owned-host acceptance and controlled external replay are documented separately.
 
 ## Product contract to preserve
 
@@ -10,12 +10,12 @@ A useful product for other integration developers: capture, inspect, safely repr
 
 | Area | Evidence | Remaining work |
 | --- | --- | --- |
-| Capture/export/compare/replay | Local API and real controlled TLS tests | End-to-end test against an owned, explicitly authorized external staging endpoint |
-| Fixture portability | Version/hash validation, sanitized preview and explicit import now implemented and tested locally | Collections, offline CI verification and explicit single-fixture replay CLI implemented locally; final CI and authorized external staging test remain |
+| Capture/export/compare/replay | Local API and real controlled TLS tests | Controlled external HTTPS replay passed with exactly one matching receipt/hash/attempt; see EXTERNAL_HTTPS_ACCEPTANCE.md. This is not production delivery assurance. |
+| Fixture portability | Version/hash validation, sanitized preview and explicit import now implemented and tested locally | Collections, offline CI verification and explicit single-fixture replay CLI implemented locally; controlled external staging test passed; exact final CI remains |
 | UI/history | Real retained records, filters, charts, keyboard/responsive tests, version/build | Documentation-only fresh-user review corrected stable/candidate and CLI setup gaps; real fresh-user task walkthrough and final visual acceptance remain; no competitor usability or speed result |
-| Persistence/recovery | Encrypted restart, fresh installation, v0.2.1-source upgrade/rollback/re-upgrade and separate-volume recovery tested in isolated Docker (both versions use the current patched runtime) | Actual installation upgrade, rollback and restore on the intended self-hosted server |
-| Security | Negative auth/SSRF/TLS/redaction/expiry tests; no runtime npm dependencies | Official Alpine advisory comparison of rebuilt candidate completed with no below-fix candidates (19 packages / 154 comparisons), zlib vendor fix applied. Scout still requires login; Trivy image scan and Node core advisory comparison now supplement this check; see VERIFICATION.md for final findings and coverage limits. Independent security review remains |
-| CI/release | Prior public main CI passes | Local changes are not the published commit: publish only when authorized, then require exact final commit CI before tagging |
+| Persistence/recovery | Encrypted restart, fresh installation, v0.2.1-source upgrade/rollback/re-upgrade and separate-volume recovery tested in isolated Docker (both versions use the current patched runtime) | Owned Linux host sandbox installation/upgrade/rollback/restore now passed (REMOTE_HOST_ACCEPTANCE.md); temporary external receiver acceptance passed; permanent public deployment and actual human client access remain unverified |
+| Security | Negative auth/SSRF/TLS/redaction/expiry tests; no runtime npm dependencies | Official Alpine advisory comparison of rebuilt candidate completed with no below-fix candidates (19 packages / 154 comparisons), zlib vendor fix applied. Scout still requires login; Trivy image scan and Node core advisory comparison now supplement this check; see VERIFICATION.md for final findings and coverage limits. Independent source review of the IPv6 change found no new blockers; comprehensive third-party security review remains |
+| CI/release | Prior public main CI passes; revised candidate full local suite 66/66 passes | Local changes are not the published commit: publish only when authorized, then require exact final commit CI before tagging |
 | Hostinger | Private Docker profile, no public ingress; isolated profile checks | No actual Hostinger install/TLS/host recovery verification; shared PHP hosting cannot run this Node/Docker profile |
 | Operations and product scale | Strict limits and manual refresh | No production queue/retry, native provider adapters, tenant isolation, complete audit retention or load/DoS evidence |
 | Market/adoption | Product hypothesis and competitor references exist | Fresh-user evidence and comparative workflow measurements; do not claim parity or faster performance |

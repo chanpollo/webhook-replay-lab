@@ -11,7 +11,7 @@ import {createLab} from '../src/server.js';
 import {resolveTarget} from '../src/core.js';
 
 const moduleURL=new URL('../src/core.js',import.meta.url).href;
-async function setup(t) {
+async function setup(t, address='127.0.0.1') {
   const dir=mkdtempSync(join(tmpdir(),'lab-tls-'));
   t.after(()=>rmSync(dir,{recursive:true,force:true}));
   const cert=join(dir,'cert.pem'),key=join(dir,'key.pem');
@@ -27,7 +27,7 @@ async function setup(t) {
       res.writeHead(202);res.end('accepted');
     });
   });
-  await new Promise(r=>receiver.listen(0,'127.0.0.1',r));
+  await new Promise(r=>receiver.listen(0,address,r));
   t.after(()=>new Promise(r=>{receiver.closeAllConnections();receiver.close(r);}));
   const base='https://localhost:'+receiver.address().port;
   const send=(path,body={synthetic:true},options={attemptId:'test-attempt-001'},trust=true)=>new Promise((resolve,reject)=>{
@@ -35,7 +35,7 @@ async function setup(t) {
     if(trust)env.NODE_EXTRA_CA_CERTS=cert;
     const child=spawn(process.execPath,['--input-type=module','-e',`
       import {transmit} from ${JSON.stringify(moduleURL)};
-      try { console.log(JSON.stringify({result:await transmit({url:new URL(process.argv[1]),address:'127.0.0.1'},JSON.parse(process.argv[2]),JSON.parse(process.argv[3]))})); }
+      try { console.log(JSON.stringify({result:await transmit({url:new URL(process.argv[1]),address:${JSON.stringify(address)}},JSON.parse(process.argv[2]),JSON.parse(process.argv[3]))})); }
       catch(error) { console.log(JSON.stringify({error:error.message})); }
     `,path.startsWith('https:')?path:base+path,JSON.stringify(body),JSON.stringify(options)],{env,stdio:['ignore','pipe','pipe']});
     let output='',stderr='';child.stdout.on('data',c=>output+=c);child.stderr.on('data',c=>stderr+=c);
@@ -71,4 +71,13 @@ test('real TLS redirects, certificate checks, body cap, disconnect and timeout f
   await assert.rejects(f.send('/disconnect'),/aborted|reset|closed/i);
   await assert.rejects(f.send('/timeout'),/Replay timeout/);
   assert.equal(f.requests.length,4,'no retry and no redirect follow');
+});
+
+test('real IPv6 socket pins address while validating TLS hostname and attempt correlation',async t=>{
+ const f=await setup(t,'::1');
+ assert.equal((await f.send('/accepted',{synthetic:true},{attemptId:'ipv6-attempt'})).status,202);
+ assert.equal(f.requests.length,1);assert.equal(f.requests[0].headers['x-webhook-replay-attempt'],'ipv6-attempt');
+ await assert.rejects(f.send('/accepted',{},undefined,false),/self-signed|certificate/i);
+ assert.equal(f.requests.length,1);
+ await assert.rejects(resolveTarget('https://staging.example.test/',['https://staging.example.test/'],async()=>[{address:'::1',family:6}]),/non-public/);
 });

@@ -71,3 +71,9 @@ Experimental first local release.
 - Document product assumptions, known limitations and development milestones.
 
 Known limitations: memory-only storage; no public provider ingress; no original provider signatures or authorization forwarded; pattern-based redaction is not DLP; real staging network replay has not been exercised; local container runtime smoke was blocked by Docker startup. Follow the exact release's CI results for container validation status. Not production-ready.
+
+## Candidate follow-up — 2026-11-12
+
+- Conservative global IPv6 DNS validation with exact address/family pinning; unsafe mixed answers, transition/special ranges and IP literal URLs fail closed.
+- Controlled external HTTPS replay and receiver correlation verified; temporary endpoint closed and cleanup verified.
+- Added IPv6 boundary, negative, pinning and real local TLS regression coverage. Not a new release or a production-gateway readiness claim.

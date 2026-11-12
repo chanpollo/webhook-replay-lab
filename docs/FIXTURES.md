@@ -45,4 +45,4 @@ This command sends one selected fixture only, never an entire collection. It req
 
 Machine output includes event/attempt IDs, delivery outcome and recorded HTTP status/latency, not the token or payload. Exit 0 means an HTTP 2xx response was received, not business processing success. Exit 1 means validation/setup failed before replay. Exit 2 means an unsuccessful or uncertain replay outcome. Network interruption after replay submission is reported as unknown. Inspect receiver logs before trying again; no automatic retries. Server rate limiting applies.
 
-The CLI path is covered with synthetic loopback servers and injected transports; a real external staging endpoint has not yet been exercised. Do not use a production destination to demonstrate readiness.
+The CLI path is covered with synthetic loopback servers and injected transports. The shared server replay API has also passed a controlled external HTTPS receiver test (FINAL_CANDIDATE_ACCEPTANCE.md); that API test is not evidence that this CLI command was itself run externally. Do not use a production destination to demonstrate readiness.

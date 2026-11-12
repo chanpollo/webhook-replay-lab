@@ -1,6 +1,6 @@
 # Private self-hosted developer tool
 
-This is a stable single-process, single-user developer workbench, not a production delivery gateway. The signed receiver is a custom protocol, not a Stripe/GitHub signature adapter. Real HTTPS replay has been verified against controlled local receivers, and encrypted backup restoration has passed in an isolated Docker sandbox. No live Hostinger deployment or external staging integration has been verified. A PHP/shared-hosting plan cannot run this Docker service. Obtain an authorized VPS or compatible Docker host before deployment. Do not replace an existing website.
+This is a single-process developer workbench with one shared inbox, not a production delivery gateway. The candidate supports capture/read credentials, but not separate tenants or per-user event isolation. The signed receiver is a custom protocol, not a Stripe/GitHub signature adapter. Real HTTPS replay has been verified against controlled local receivers, and encrypted backup restoration has passed in an isolated Docker sandbox. No live Hostinger deployment has been verified. The current candidate has passed controlled external HTTPS replay and owned-host sandbox acceptance; see FINAL_CANDIDATE_ACCEPTANCE.md for exact scope, candidate and cleanup evidence. A PHP/shared-hosting plan cannot run this Docker service. Obtain an authorized VPS or compatible Docker host before deployment. Do not replace an existing website.
 
 ## Private install
 
@@ -14,6 +14,27 @@ Use a supported Linux host with Docker Compose. Keep port 4319 on loopback. Do n
 6. Check health and private access through SSH forwarding, capture **synthetic data**, restart, and verify the captured record remains. Check host monitoring, disk capacity and logs. Configured credentials are not printed by the app.
 
 No restart policy intentionally: a crash can leave a lock that needs operator investigation. Check container exit and health status using external host monitoring. One process only. Horizontal replicas and network filesystems are unsupported. The image runs non-root with a read-only root filesystem, resource bounds and dropped capabilities; only `/data` is writable.
+
+## Native Node persistence (without Docker)
+
+Use the reviewed candidate checkout for the optional doctor, redaction and scoped-credential features; the stable tag may not contain them. `npm start` does not load `.env` automatically.
+
+Create a dedicated directory owned by your current OS user, not writable by group/others (mode 700 recommended). Do not point at an existing live workspace or change its key. Provision independent random admin token and 32-byte hexadecimal storage key in private files (mode 600). Unlike the Docker bind-mount recipe above, a native directory must **not** be changed to UID 1000 unless that is your own user ID.
+
+Set these variables in the same shell before both diagnostics and startup:
+
+```sh
+export LAB_TOKEN_FILE=/your/private/workspace/admin-token
+export LAB_STORAGE_KEY_FILE=/your/private/workspace/storage-key
+export LAB_DATA_PATH=/your/private/workspace/inbox.enc
+export STAGING_ALLOWLIST=''
+# If 4319 is already occupied, choose another unused local port; do not stop other work.
+export PORT=4319
+npm run doctor
+npm start
+```
+
+Replace the example paths with your provisioned files. No token belongs in command arguments or a URL. Open `http://127.0.0.1:4319` (or your selected port) and use the token matching the file. Configured tokens are not printed at startup. Keep the key and encrypted snapshot paired across restarts; back up the key separately. Stop gracefully before copying a snapshot. Restart with the **same variables and files**, then verify a synthetic retained event before relying on persistence. Doctor checks configuration shape, not a complete storage/recovery or network-security audit.
 
 ## Recovery, retention and upgrades
 

@@ -1,0 +1,199 @@
+{
+  "checkedAt": "2026-11-12T15:01:35Z",
+  "beforeScanner": "aquasec/trivy:0.69.3",
+  "finalScanner": "aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb",
+  "before": {
+    "image": "sha256:29eef2b7045b127ddfc24d5b81d4bf450a8973adf30120c9ea9f742721ff1f63",
+    "results": [
+      {
+        "target": "webhook-replay-lab:release-candidate (alpine 3.24.4)",
+        "type": "alpine",
+        "findings": []
+      },
+      {
+        "target": "Node.js",
+        "type": "node-pkg",
+        "findings": [
+          {
+            "id": "CVE-2026-102276",
+            "package": "brace-expansion",
+            "path": "usr/local/lib/node_modules/npm/node_modules/brace-expansion/package.json",
+            "version": "5.0.9",
+            "fixed": "5.0.10, 3.0.7, 2.1.5, 1.1.19",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-102278",
+            "package": "brace-expansion",
+            "path": "usr/local/lib/node_modules/npm/node_modules/brace-expansion/package.json",
+            "version": "5.0.9",
+            "fixed": "5.0.11, 3.0.8, 2.1.6, 1.1.20",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-102277",
+            "package": "brace-expansion",
+            "path": "usr/local/lib/node_modules/npm/node_modules/brace-expansion/package.json",
+            "version": "5.0.9",
+            "fixed": "5.0.12, 3.0.9, 2.1.7, 1.1.21",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-118773",
+            "package": "glob",
+            "path": "usr/local/lib/node_modules/npm/node_modules/glob/package.json",
+            "version": "13.0.6",
+            "fixed": "14.0.2",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-101910",
+            "package": "ip-address",
+            "path": "usr/local/lib/node_modules/npm/node_modules/ip-address/package.json",
+            "version": "10.5.0",
+            "fixed": "10.5.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-101911",
+            "package": "ip-address",
+            "path": "usr/local/lib/node_modules/npm/node_modules/ip-address/package.json",
+            "version": "10.5.0",
+            "fixed": "10.7.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-101912",
+            "package": "ip-address",
+            "path": "usr/local/lib/node_modules/npm/node_modules/ip-address/package.json",
+            "version": "10.5.0",
+            "fixed": "10.7.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-101913",
+            "package": "ip-address",
+            "path": "usr/local/lib/node_modules/npm/node_modules/ip-address/package.json",
+            "version": "10.5.0",
+            "fixed": "10.5.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-111997",
+            "package": "ip-address",
+            "path": "usr/local/lib/node_modules/npm/node_modules/ip-address/package.json",
+            "version": "10.5.0",
+            "fixed": "10.7.4",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-118764",
+            "package": "minimatch",
+            "path": "usr/local/lib/node_modules/npm/node_modules/minimatch/package.json",
+            "version": "10.2.5",
+            "fixed": "11.0.1",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-104844",
+            "package": "postcss-selector-parser",
+            "path": "usr/local/lib/node_modules/npm/node_modules/postcss-selector-parser/package.json",
+            "version": "7.1.4",
+            "fixed": "7.1.6, 6.1.5",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-109383",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.29.1, 7.30.1, 8.12.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-109869",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.29.1, 7.30.1, 8.12.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-19534",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.28.1, 7.29.1, 8.10.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-87018",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.29.1, 7.30.1, 8.12.2",
+            "severity": "HIGH"
+          },
+          {
+            "id": "CVE-2026-109924",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.29.1, 7.30.1, 8.12.2",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-109932",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.29.1, 7.30.1, 8.12.2",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-85024",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.28.1, 7.29.1, 8.10.2",
+            "severity": "MEDIUM"
+          },
+          {
+            "id": "CVE-2026-18540",
+            "package": "undici",
+            "path": "usr/local/lib/node_modules/npm/node_modules/undici/package.json",
+            "version": "6.28.0",
+            "fixed": "6.28.1, 7.29.1, 8.10.2",
+            "severity": "LOW"
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "image": "sha256:d51f5e226e2233159cb1297c3362ac9f2fad09f21d509c7fe3298752789c45ac",
+    "results": [
+      {
+        "target": "webhook-replay-lab:release-candidate (alpine 3.24.4)",
+        "type": "alpine",
+        "findings": []
+      },
+      {
+        "target": "Node.js",
+        "type": "node-pkg",
+        "findings": []
+      }
+    ]
+  },
+  "fix": "Remove unneeded npm/npx/yarn runtime tools; no suppression or ignore file",
+  "rawFinalSha256": "e8e94f5b140cbf27e01ce7f7a0dd3ab00b6a823d2effb93c2cad8fd322091806",
+  "limits": "Known OS and discovered package advisories only, not proof of no vulnerabilities or Node embedded-library completeness. Official Node core ranges checked separately.",
+  "finalSourceBuild": "cf692e61d917",
+  "finalNavigationFixScan": {
+    "image": "sha256:096daf59471925f404b5297afe0c72ceda1c9ccecbc046611bbec396066ffc16",
+    "reportedVulnerabilities": 0,
+    "rawFile": "IMAGE_SCAN_FINAL_RAW.json",
+    "rawSha256": "d0e681577bc437b43fde2bac65904695b91155743ee5a42a142e2ea3c251f210",
+    "checkedAt": "2026-11-12T15:08:50Z"
+  }
+}

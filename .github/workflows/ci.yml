@@ -18,6 +18,8 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: npm run check
       - run: npm test
+      - name: Validate portable synthetic collection
+        run: node bin/fixtures.mjs verify examples/orders.collection.json
   container:
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -61,3 +63,24 @@ jobs:
 
       - name: Check private Hostinger Compose profile
         run: npm run test:hostinger
+
+      - name: Scan immutable final image and Node advisories
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p security-evidence
+          image_id=$(docker image inspect webhook-replay-lab:test --format '{{.Id}}')
+          printf '%s\n' "$image_id" > security-evidence/image-id.txt
+          docker image inspect "$image_id" > security-evidence/image-inspect.json
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb image --image-src docker --scanners vuln --exit-code 1 --format json "$image_id" > security-evidence/trivy.json
+          node_version=$(docker run --rm --network none "$image_id" node -p 'process.versions.node')
+          curl --fail --silent --show-error --max-time 30 https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json -o security-evidence/node-core-feed.json
+          SEMVER_MODULE="$(npm root -g)/npm/node_modules/semver" node scripts/check-node-advisories.cjs "$node_version" security-evidence/node-core-feed.json > security-evidence/node-core-result.json
+      - name: Retain security evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image-security-evidence
+          path: security-evidence/
+          retention-days: 14
+          if-no-files-found: warn

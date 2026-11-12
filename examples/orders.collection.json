@@ -1,0 +1,22 @@
+{
+  "kind": "webhook-fixture-collection",
+  "version": 1,
+  "name": "Synthetic orders",
+  "fixtures": [
+    {
+      "name": "created",
+      "fixture": {
+        "version": 1,
+        "payload": {
+          "type": "order.created",
+          "order": {
+            "id": "synthetic-001",
+            "amount": 1499,
+            "currency": "THB"
+          }
+        },
+        "sha256": "ddf4864782298110577d4551d4d479e1f3184ba96638de3adf69230affa50992"
+      }
+    }
+  ]
+}

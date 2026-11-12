@@ -7,7 +7,7 @@ let clock=Date.now(),sendCount=0;const target='https://synthetic.example.test/ho
 const server=createLab({token,allowlist:[target],now:()=>clock,resolve:async()=>({}),send:async()=>{sendCount++;return{status:202};}});await new Promise(r=>server.listen(0,'127.0.0.1',r));
 let browser;
 try{
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1100}});
+ browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:1440,height:1100}});
  const base='http://127.0.0.1:'+server.address().port;
  await page.route('**/*',route=>route.request().url().startsWith(base+'/')?route.continue():route.abort());
  const errors=[];page.on('pageerror',error=>errors.push(error.message));

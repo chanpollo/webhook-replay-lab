@@ -10,7 +10,7 @@ const percentile=(values,p)=>[...values].sort((a,b)=>a-b)[Math.ceil(values.lengt
 const store={load:()=>({version:1,events,receipts:[]}),save(){},close(){}};
 const server=createLab({token,store,now:()=>now});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
 try{
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:900}}),base='http://127.0.0.1:'+server.address().port;
+ browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:1440,height:900}}),base='http://127.0.0.1:'+server.address().port;
  await page.route('**/*',r=>r.request().url().startsWith(base+'/')?r.continue():r.abort());await page.goto(base);await page.locator('#token').fill(token);await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent==='Ready');await page.locator('#tab-history').click();assert.equal(await page.locator('#history .attempt-card').count(),20);
  const browserTimes=await page.evaluate(()=>{const times=[],input=document.querySelector('#historySearch');for(let i=0;i<55;i++){const start=performance.now();input.value=i%2?'event 12':'synthetic';input.dispatchEvent(new Event('input'));document.querySelector('#history').getBoundingClientRect();if(i>=5)times.push(performance.now()-start);}return times;});
  await page.locator('#historySearch').fill('synthetic');await page.locator('#moreHistory').click();assert.equal(await page.locator('#history .attempt-card').count(),40);

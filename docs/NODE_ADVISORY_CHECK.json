@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-12T15:00:49.256Z",
+  "source": "https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json",
+  "sourceSha256": "f828e1488a638b970e88cc3e9993d34a8fb1fc02bd5e160b8ced2df99016d217",
+  "node": "24.22.3",
+  "entries": 204,
+  "matchedMajorRanges": 47,
+  "coveredByPatchedRanges": 47,
+  "unresolved": [],
+  "unparsed": [],
+  "scope": "Node security-wg core ranges minus patched ranges, not a completeness guarantee for all bundled components or unknown CVEs"
+}

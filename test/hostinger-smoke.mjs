@@ -40,6 +40,7 @@ try {
     if(process.getuid()===0)throw Error('root user');
   `;
   run([...isolated,'exec','-T','lab','node','--input-type=module','-e',js]);
+  const packages=run([...isolated,'exec','-T','lab','apk','info','-v']);assert.match(packages,/(?:^|\n)zlib-1\.4-r0(?:\n|$)/,'vendor zlib security fix required');
   run([...isolated,'stop']);
   run([...isolated,'up','-d','--wait','--wait-timeout','30']);
   run([...isolated,'exec','-T','lab','node','--input-type=module','-e',`

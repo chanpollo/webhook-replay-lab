@@ -11,7 +11,7 @@ Use **VPS + Docker Compose** for this profile. Managed Node.js Web Apps and PHP/
 ## Install on an authorized VPS
 
 1. Choose an already authorized VPS with Docker Engine 28+ and Compose 2.24.4+ installed. Check `docker version` (Server) and `docker compose version` first. Older Docker engines can expose localhost-published ports to neighboring hosts on the same network; loopback publishing alone is not sufficient on those versions. Purchasing a plan, configuring SSH access or changing a firewall are separate operator actions. Do not open port 4319 to the internet.
-2. Clone this public repository and check out `v0.2.1`. Keep the checkout path and Compose project name stable on upgrades.
+2. Clone this public repository and check out `v0.2.1`. This published version does not include the unreleased fixture/collection CLI features. Candidate testing requires the explicitly reviewed local checkout, not this stable tag. Keep the checkout path and Compose project name stable on upgrades.
 3. In the checkout, create a new private `.env` (mode 600) with independently generated random `LAB_TOKEN` (32+ characters) and `LAB_STORAGE_KEY` (64 hexadecimal characters). `openssl rand -hex 32` can generate each independently. Leave `STAGING_ALLOWLIST` empty. Do not overwrite an existing key or paste credentials into shared terminals, tickets, logs or version control. Back up the key separately from the data. Docker administrators can read environment variables.
 4. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml config --quiet`. Do not print/share expanded configuration because it contains secrets.
 5. Run `docker compose -p webhook-replay-lab -f compose.hostinger.yaml up -d --build` and then `docker compose -p webhook-replay-lab -f compose.hostinger.yaml ps`.
@@ -44,3 +44,5 @@ Before describing this project as one-click deployable or adding a working refer
 - Obtain a real partner code and use the exact approved deployment link from the dashboard. Do not invent a code or publish a placeholder button as functional.
 
 Program participation, referral earnings and app-catalog listing are not guaranteed by this release. No application, purchase, account configuration or live deployment is included.
+
+Additional sandbox lifecycle check: build the reviewed candidate with `docker build -t webhook-replay-lab:release-candidate .`, then run `node test/lifecycle-smoke.mjs`. It verifies fresh install, v0.2.1-source upgrade, rollback reading newer retained state, re-upgrade and stopped-backup recovery into a separate volume. Both versions use the current patched runtime. No host ports or external container network are used; this does not replace actual host acceptance.

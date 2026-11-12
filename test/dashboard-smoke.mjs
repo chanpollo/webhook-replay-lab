@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createLab} from '../src/server.js';
 import {createStore} from '../src/store.js';
+import {readBuildInfo} from '../src/build-info.js';
 const {chromium}=await import(process.env.PLAYWRIGHT_MODULE||'playwright');
 const token='synthetic-dashboard-test-token-0000000',target='https://synthetic.example.test/hook';
 const dir=mkdtempSync(join(tmpdir(),'lab-dashboard-')),path=join(dir,'events.enc'),key='ab'.repeat(32);
@@ -20,11 +21,11 @@ try{
  }
  // Stay within 24 hours of the oldest capture, then verify encrypted restart.
  clock-=3*3600000;const before=await api('events');await stop();base=await start();const restored=await api('events');assert.deepEqual(restored.events,before.events);assert.equal(restored.persistent,true);assert.equal(restored.maxAttemptsPerEvent,20);
- browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1050}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHANNEL?{channel:process.env.PLAYWRIGHT_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:1440,height:1050}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.route('**/*',route=>route.request().url().startsWith(base+'/')?route.continue():route.abort());
- await page.goto(base);assert.match(await page.locator('#activityChart').innerText(),/Unlock/);
+ await page.goto(base);const metadata=readBuildInfo();assert.equal((await page.locator('#buildInfo').innerText()).replace(/\s+/g,' ').trim(),'v'+metadata.version+' · build '+metadata.build);assert.match(await page.locator('#activityChart').innerText(),/Unlock/);
  await page.locator('#token').fill(token);await page.locator('#connect').click();await page.waitForFunction(()=>document.querySelector('#status').textContent==='Ready');
- assert.deepEqual(await page.locator('.metric strong').allTextContents(),['4','4','1','302 ms']);assert.match(await page.locator('#retention').innerText(),/survives a restart/);assert.equal(await page.locator('#chartData tbody tr').count(),12);
+ assert.deepEqual(await page.locator('.metric strong').allTextContents(),['4','4','1','302 ms']);await page.locator('#storageSummary').click();assert.match(await page.locator('#retention').innerText(),/survives a restart/);await page.locator('#storageSummary').click();assert.equal(await page.locator('#chartData tbody tr').count(),12);assert.equal(await page.locator('.series-line').count(),2);assert.equal(await page.locator('.outcome-row').count(),6);assert.deepEqual(await page.locator('.outcome-row strong').allTextContents(),['1','1','1','1','0','0']);
  await page.locator('.metric-link').click();assert.equal(await page.locator('#historySearch').evaluate(el=>el===document.activeElement),true);await page.locator('#tab-overview').click();await page.locator('#tab-overview').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#tab-history').getAttribute('aria-selected'),'true');await page.locator('#outcomeFilter').selectOption('all');assert.equal(await page.locator('#history .attempt-card').count(),4);
  await page.locator('#outcomeFilter').selectOption('unknown');assert.equal(await page.locator('#history .attempt-card').count(),1);assert.match(await page.locator('#history').innerText(),/Check receiver logs/);
  await page.locator('#history .attempt-top button').click();assert.equal(await page.locator('#view-workbench').isVisible(),true);assert.match(await page.locator('#eventAttempts').innerText(),/Unknown delivery/);assert.match(await page.locator('#detail').innerText(),/REDACTED/);

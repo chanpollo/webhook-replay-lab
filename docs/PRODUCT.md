@@ -29,4 +29,10 @@ Hookdeck and Convoy already support relevant webhook workflows. Do not claim tha
 
 ## Deferred work
 
-Persistent encrypted storage, per-inbox scoped keys, signature-verification adapters, CI fixture assertions, response/body comparisons, multi-user access, public ingress with a hardened reverse proxy, audit retention and deployment automation. None is implied to exist in this MVP.
+Per-inbox scoped keys, signature-verification adapters, response/body comparisons, multi-user access, public ingress with a hardened reverse proxy, audit retention and deployment automation. None is implied to exist in this MVP.
+
+## Implemented since the initial hypothesis
+
+Opt-in encrypted persistence, Overview and retained replay history are implemented. The current working tree also validates and previews saved version-1 fixtures before local import. These close parts of the workflow, not the remaining product/adoption, live-host or security gates. See [release readiness](RELEASE_READINESS.md).
+
+Portable collections and the explicit CI fixture CLI are now in the working tree; usage and limitations are in FIXTURES.md. Adoption, server deployment and security gates remain unpassed.

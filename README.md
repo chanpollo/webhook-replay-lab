@@ -2,7 +2,7 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Status: v0.3.0 stable private developer tool.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Release status: [v0.2.1](https://github.com/chanpollo/webhook-replay-lab/releases/tag/v0.2.1) is the latest published release. This working tree targets v0.3.0, which is unreleased.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
 
 ## Screenshots
 
@@ -28,6 +28,16 @@ Three focused views: Overview, Replay history, and Workbench. Screenshots use ac
 
 ## Start
 
+First obtain a checkout and enter its directory:
+
+```sh
+git clone https://github.com/chanpollo/webhook-replay-lab.git
+cd webhook-replay-lab
+git checkout v0.2.1
+```
+
+This installs the published stable version, **not** the unreleased fixture/collection CLI features described below. For the unreleased development candidate, explicitly check out `main` instead and verify its CI and build ID. A main-branch checkout is not a published stable release.
+
 Requires Node.js 22 or newer (container: Node 24; local verification: Node 25.2.1).
 
 ```sh
@@ -44,6 +54,10 @@ Open http://127.0.0.1:4319 and paste the session token printed in your terminal.
 
 Default storage is **memory-only** (the self-hosted profiles use encrypted snapshots): restart loses all events, confirmations and attempt records. Export needed fixtures. Expired events are inaccessible after 24 hours and swept from memory at most 30 seconds later. Exported files are outside this retention policy; delete them yourself. No raw request headers are retained.
 
+## Version and build
+
+The footer shows the package version and a 12-character SHA-256 identifier of the shipped runtime source files, captured at server startup. The same source produces the same build ID locally and in Docker; edits change the ID after restart. It is a source identifier, not a release tag, timestamp or container digest. No Git checkout or build environment variables are required. Missing inputs show `build unavailable`; an unreadable version shows `vunknown`.
+
 ## Investigate with real retained data
 
 - **Overview:** last-hour or last-24-hour capture/replay-start counts, 12 time buckets, outcome distribution, unknown deliveries, and median recorded HTTP-response latency. Open the accessible chart table for exact timestamps and counts. Every figure uses the server snapshot time; **Refresh data** is manual, not a live stream.
@@ -55,6 +69,14 @@ Default storage is **memory-only** (the self-hosted profiles use encrypted snaps
 Tab navigation supports keyboard arrows, Home/End, and view-only URL hashes with Back/Forward. Tokens and payloads are never saved to browser storage or the URL. A failed refresh clearly marks the older snapshot.
 
 See [dashboard design, verification and bounded performance measurements](docs/DASHBOARD.md) for scope and remaining gaps.
+
+## Import a saved fixture
+
+In Workbench, open **Import fixtures**, paste an exported version-1 JSON fixture, and choose **Validate & preview**. The server checks the payload hash, version, shape, nesting and size, then applies redaction again. Review the sanitized preview before **Import event**. A hash proves integrity of the supplied JSON representation, not trust or origin. Free text still needs review.
+
+Import creates a fresh local event with no destination, credentials or replay history. It never sends a webhook. Unsupported versions, added metadata and mismatched hashes are rejected. Sanitized payloads remain limited to 64 KB; fixture requests allow 65 KB to include version/hash metadata and confirmation. Inbox limits still apply. Editing the JSON, cancelling, or changing the session invalidates the preview. Do not paste production secrets merely to test redaction.
+
+Collections and CI: see [portable fixtures and explicit CLI replay](docs/FIXTURES.md), including a synthetic example, machine-readable outcomes and no-retry behavior.
 
 ## Optional staging replay
 
@@ -114,11 +136,15 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-smo
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-performance.mjs
 ```
 
+If the bundled Chromium version is absent, set `PLAYWRIGHT_CHANNEL=chrome` (or `msedge`) to use an already-installed browser in an isolated headless session. This does not use your signed-in browser profile or download a browser. Omit the variable to use Playwright’s bundled Chromium.
+
 The browser test blocks all non-local requests. It covers unlocking, repeated capture clicks, sanitization, comparison, fixture download, deletion, token-change handling, mobile overflow and browser errors. The dashboard suite also checks encrypted-history restart, filters, exact metric values, retention, stale snapshots, token clearing and responsive views. Run it last to regenerate all four screenshot files in `docs/`. The separate performance script is synthetic and makes no competitor-speed claim.
+
+See [v1 release readiness](docs/RELEASE_READINESS.md) for the current unpassed gates.
 
 ## Limits and honest boundaries
 
-- 64 KB inbound JSON and newly sanitized payloads; 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
+- 64 KB ordinary inbound JSON and each sanitized payload; fixture envelopes allow 65 KB and collection envelopes 257 KB (256 KB sanitized collection); 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
 - Redaction uses sensitive field-name matching and email/Bearer patterns. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
 - Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values are marked separately from explicit null; own-property checks handle prototype-named fields.
 - Single-user token, no tenant isolation, SSO/RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.

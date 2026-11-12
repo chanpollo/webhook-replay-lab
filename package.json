@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/*.test.js",
-    "check": "node --check src/server.js && node --check src/core.js && node --check src/app.js && node --check src/store.js && node --check src/analytics.js",
+    "check": "node --check src/server.js && node --check src/core.js && node --check src/app.js && node --check src/store.js && node --check src/analytics.js && node --check src/build-info.js && node --check src/fixture.js && node --check bin/fixtures.mjs",
     "test:hostinger": "node test/hostinger-smoke.mjs"
   },
   "license": "MIT"

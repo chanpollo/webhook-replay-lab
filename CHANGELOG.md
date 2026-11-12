@@ -1,7 +1,22 @@
 # Changelog
 
-## v0.3.0 — 2026-11-11
+## v0.3.0 — Unreleased
 
+- Invalidate fixture previews on view/history navigation, and retain a regression test.
+- Add pinned immutable-image vulnerability and Node advisory CI gates with raw evidence.
+- Remove unused npm/yarn runtime tooling; verify sandbox install, upgrade, rollback and recovery.
+
+- Refresh the official Node 24 image digest and pin the Alpine stable zlib vendor fix; verify its presence in container QA.
+
+- Add bounded portable fixture collections, filtered export, all-or-nothing validation and local import.
+- Add offline CI verification and explicit single-fixture staging replay CLI with machine-readable outcomes and no retries.
+- Replace quadratic free-text email searching with linear candidate scanning.
+
+- Validate version-1 fixture integrity and preview re-redacted JSON before importing a fresh local event; import cannot send a webhook.
+
+- Refresh the light UI and activity charts; reduce repetitive helper text while preserving replay warnings.
+- Show package version and a reproducible runtime-source build identifier.
+- Allow browser QA to use an installed Chrome or Edge channel when bundled Chromium is unavailable.
 - Add data-backed Overview, searchable Replay history and focused Workbench views.
 - Chart retained captures/replay starts and explicit replay outcomes; report unknown delivery separately from HTTP responses, with latency only when recorded.
 - Expose persisted per-event attempt timelines and one-click event investigation without changing replay confirmation, retention or security policy.

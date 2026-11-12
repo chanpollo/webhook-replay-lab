@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101718">
+  <meta name="theme-color" content="#f5f7fb">
   <title>Webhook Replay Lab</title>
   <link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script>
 </head>
@@ -13,31 +13,31 @@
   <span class="environment"><span class="status-dot" aria-hidden="true"></span> LOCAL / STAGING</span>
 </header>
 <main id="workbench">
-  <div class="intro"><div><p class="eyebrow">THE INTEGRATION WORKBENCH</p><h1>Your webhook workbench.</h1><p>Inspect captured events, trace replay attempts and reproduce failures safely.</p></div><span class="privacy-note">◈ &nbsp; Private by design</span></div>
+  <div class="intro"><h1>Webhook workspace</h1></div>
   <section class="access" aria-label="Session access">
-    <div class="access-heading"><span class="step" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><div><h2>Connect your session</h2><p>Use the token from your terminal.</p></div></div>
+    <div class="access-heading"><span class="step" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><div><h2>Session</h2><p>Terminal token</p></div></div>
     <label class="token-label" for="token"><span class="sr-only">Session token</span><input id="token" type="password" autocomplete="off" placeholder="Paste session token" spellcheck="false"></label>
-    <button id="connect">Unlock inbox <span aria-hidden="true">→</span></button>
+    <button id="connect">Connect <span aria-hidden="true">→</span></button>
     <span id="status" role="status" aria-live="polite">Locked</span>
   </section>
-  <nav class="view-nav" aria-label="Workspace views" role="tablist"><button id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview">Overview</button><button id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1">Replay history</button><button id="tab-workbench" role="tab" aria-selected="false" aria-controls="view-workbench" tabindex="-1">Workbench</button></nav>
+  <nav class="view-nav" aria-label="Workspace views" role="tablist"><button id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button><button id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v6l4 2"/></svg>Replay history</button><button id="tab-workbench" role="tab" aria-selected="false" aria-controls="view-workbench" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg>Workbench</button></nav>
   <div id="view-overview" role="tabpanel" tabindex="0" aria-labelledby="tab-overview">
   <section class="panel overview" aria-labelledby="overview-title">
-    <div class="panel-heading"><div><span class="eyebrow">RETAINED ACTIVITY</span><h2 id="overview-title">What needs your attention?</h2></div><button id="refresh" class="secondary" disabled>Refresh data</button></div>
+    <div class="panel-heading"><div><span class="eyebrow">RETAINED ACTIVITY</span><h2 id="overview-title">Overview</h2></div><button id="refresh" class="secondary" disabled>Refresh</button></div>
     <div class="panel-body">
-      <div class="overview-controls"><p id="freshness" role="status">Unlock to load actual captured records. No demo metrics.</p><label for="timeRange">Activity window<select id="timeRange"><option value="24">Last 24 hours</option><option value="1">Last hour</option></select></label></div>
+      <div class="overview-controls"><p id="freshness" role="status">Connect to load events.</p><label for="timeRange">Period<select id="timeRange"><option value="24">Last 24 hours</option><option value="1">Last hour</option></select></label></div>
       <div id="metrics" class="metrics" aria-label="Retained activity totals"></div>
-      <div class="charts"><section aria-labelledby="activity-title"><h3 id="activity-title">Captures &amp; replay starts</h3><p class="hint">Counts per time bucket, from retained records only.</p><div id="activityChart"></div><details><summary>View chart data</summary><div id="chartData" class="table-scroll" tabindex="0"></div></details></section><section aria-labelledby="outcome-title"><h3 id="outcome-title">Replay outcomes</h3><div id="outcomeChart"></div><p class="hint">HTTP 2xx is a response, not proof of business processing. Unknown delivery needs checking at the destination before any retry.</p></section></div>
-      <p id="retention" class="storage">History is bounded, not a complete audit log. Deleted and expired events disappear from all counts.</p>
+      <div class="charts"><section aria-labelledby="activity-title"><h3 id="activity-title">Event activity</h3><p id="bucketSize" class="hint"></p><div id="activityChart"></div><details><summary>Data table</summary><div id="chartData" class="table-scroll" tabindex="0"></div></details></section><section aria-labelledby="outcome-title"><h3 id="outcome-title">Replay outcomes</h3><div id="outcomeChart"></div><p class="hint">2xx confirms an HTTP response, not processing. Check unknown deliveries before retrying.</p></section></div>
+      <details class="retention-details"><summary id="storageSummary">Storage &amp; retention</summary><p id="retention">History is bounded, not a complete audit log.</p></details>
     </div>
   </section>
   </div>
   <div id="view-history" role="tabpanel" tabindex="0" aria-labelledby="tab-history" hidden>
   <section class="panel history-panel" aria-labelledby="history-title">
-    <div class="panel-heading"><div><span class="eyebrow">INVESTIGATE BEFORE RETRYING</span><h2 id="history-title">Replay history</h2></div><span id="historyCount" class="count">0</span></div>
+    <div class="panel-heading"><div><h2 id="history-title">Replay history</h2></div><span id="historyCount" class="count">0</span></div>
     <div class="panel-body">
       <p id="historyWindow" class="hint"></p><div class="history-controls"><label for="historySearch">Find an attempt<input id="historySearch" type="search" placeholder="Event, attempt ID or destination"></label><label for="outcomeFilter">Outcome<select id="outcomeFilter"><option value="all">All outcomes</option><option value="unknown">Unknown delivery</option><option value="http_error">HTTP non-2xx</option><option value="blocked">Blocked before send</option><option value="http_ok">HTTP 2xx received</option><option value="active">In progress</option><option value="unclassified">Unclassified response</option></select></label></div>
-      <p class="hint">Uses the activity window selected in Overview, based on replay start time. Open an event to inspect its payload and retained attempts.</p>
+      <p class="hint">Filtered by replay time. Select an event to inspect it.</p>
       <div id="history" class="history-list">Unlock to view retained replay attempts.</div><button id="moreHistory" class="secondary" hidden>Show more attempts</button>
     </div>
   </section>
@@ -45,11 +45,11 @@
   <div id="view-workbench" class="layout" role="tabpanel" tabindex="0" aria-labelledby="tab-workbench" hidden>
     <div class="capture-column">
       <section class="panel inbox-panel" aria-labelledby="inbox-title">
-        <div class="panel-heading"><div><span class="eyebrow">YOUR WORKSPACE</span><h2 id="inbox-title">Private inbox</h2></div><span id="eventCount" class="count" aria-label="Event count">0</span></div>
-        <div class="panel-body"><label for="eventSearch">Find a captured event<input id="eventSearch" type="search" placeholder="Label, event ID or payload type"></label><p class="hint">All retained captures, newest first. Activity window does not filter this inbox.</p><div id="events">Unlock your session to load captured events.</div><p id="storage" class="storage">24-hour retention · 200 events · 64 KB/request</p></div>
+        <div class="panel-heading"><div><h2 id="inbox-title">Events</h2></div><span id="eventCount" class="count" aria-label="Event count">0</span></div>
+        <div class="panel-body"><label for="eventSearch">Find a captured event<input id="eventSearch" type="search" placeholder="Label, event ID or payload type"></label><p class="hint">All retained captures, newest first. Period does not filter this inbox.</p><div id="events">Unlock your session to load captured events.</div><button id="exportCollection" class="secondary">Export filtered events (max 20)</button><p id="storage" class="storage">24-hour retention · 200 events · 64 KB/request</p></div>
       </section>
       <section class="panel capture-panel" aria-labelledby="capture-title">
-        <div class="panel-heading"><div><span class="eyebrow">01 / CAPTURE</span><h2 id="capture-title">Start with an event</h2></div><span class="tag">JSON</span></div>
+        <div class="panel-heading"><div><span class="eyebrow">01 / CAPTURE</span><h2 id="capture-title">Capture JSON</h2></div><span class="tag">JSON</span></div>
         <div class="panel-body">
           <label for="label">Event label<input id="label" value="Synthetic order" placeholder="e.g. Order created"></label>
           <label for="payload" class="code-label">Request payload<span>application/json</span></label>
@@ -65,18 +65,25 @@
 }</textarea>
           <p id="redaction-note" class="hint">Sensitive field names and emails are redacted before storage. Review free text yourself.</p>
           <div class="actions"><button id="capture">Capture event <span aria-hidden="true">↗</span></button><button id="sample" class="secondary">Reset sample</button></div>
+          <details class="fixture-import"><summary>Import fixtures</summary>
+            <label for="fixtureInput">Fixture JSON</label><textarea id="fixtureInput" rows="5" spellcheck="false" placeholder="Paste a version 1 fixture or collection"></textarea>
+            <button id="previewFixture" class="secondary">Validate &amp; preview</button>
+            <div id="fixtureReview" hidden><p id="fixtureNotice" class="hint"></p><pre id="fixturePreview" tabindex="0" aria-label="Sanitized fixture preview"></pre>
+              <div class="actions"><button id="importFixture">Import event</button><button id="cancelFixture" class="secondary">Cancel</button></div>
+            </div>
+          </details>
         </div>
       </section>
     </div>
     <div class="inspect-column">
       <section class="panel" aria-labelledby="inspect-title">
-        <div class="panel-heading"><div><span class="eyebrow">02 / INSPECT</span><h2 id="inspect-title">See what actually arrived</h2></div><span class="tag green">SANITIZED</span></div>
+        <div class="panel-heading"><div><span class="eyebrow">02 / INSPECT</span><h2 id="inspect-title">Event payload</h2></div><span class="tag green">SANITIZED</span></div>
         <div class="panel-body">
           <p id="selected" class="selected">Select an event from your inbox.</p>
           <div class="code-toolbar"><span>event.json</span><span>READ ONLY</span></div>
           <pre id="detail" tabindex="0" aria-label="Sanitized event JSON">No event selected.</pre>
           <div class="actions"><button id="export" class="secondary" disabled>Export fixture <span aria-hidden="true">↓</span></button><button id="delete" class="danger subtle" disabled>Delete event</button></div>
-          <section class="attempt-block" aria-labelledby="attempt-title"><h3 id="attempt-title">This event’s replay attempts</h3><div id="eventAttempts">Select an event to inspect its replay history.</div></section><div class="compare-block"><h3>Compare payloads</h3><div class="compare-controls"><label for="compareWith"><span class="sr-only">Compare selected event with</span><select id="compareWith"><option value="">Choose another event</option></select></label><button id="compare" class="secondary">Compare</button></div><pre id="diff" tabindex="0" aria-label="Payload differences">No comparison yet.</pre></div>
+          <section class="attempt-block" aria-labelledby="attempt-title"><h3 id="attempt-title">Replay attempts</h3><div id="eventAttempts">Select an event to inspect its replay history.</div></section><div class="compare-block"><h3>Compare payloads</h3><div class="compare-controls"><label for="compareWith"><span class="sr-only">Compare selected event with</span><select id="compareWith"><option value="">Choose another event</option></select></label><button id="compare" class="secondary">Compare</button></div><pre id="diff" tabindex="0" aria-label="Payload differences">No comparison yet.</pre></div>
         </div>
       </section>
       <section class="panel replay-panel" aria-labelledby="replay-title">
@@ -92,6 +99,6 @@
     </div>
   </div>
 </main>
-<footer><span><span class="status-dot" aria-hidden="true"></span> Local-first. No telemetry.</span><span>No automatic retries <span aria-hidden="true">/</span> No production routing</span></footer>
+<footer><span id="buildInfo" title="Package version · Runtime source hash at startup">v__LAB_VERSION__ <span aria-hidden="true">·</span> build __LAB_BUILD__</span><span>No automatic retries <span aria-hidden="true">/</span> No production routing</span></footer>
 </body>
 </html>

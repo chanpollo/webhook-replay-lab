@@ -15,3 +15,11 @@ Independent source reviews and local negative security tests were performed for 
 The private self-host profiles support opt-in encrypted snapshots and custom signed capture. See SELF_HOSTING.md for mandatory host gates. Signed ingress remains disabled by default and is not approved for production provider traffic. Crypto at rest does not protect against a compromised process/host holding the key.
 
 Replay attempt IDs are persisted before send and forwarded as correlation/idempotency headers. They are not distributed tracing and do not prevent duplicate effects by themselves. CI actions and the base image are pinned; a CVE scan was attempted but blocked by the local scanner login requirement. See VERIFICATION.md for evidence and limitations.
+
+## Latest scoped advisory check
+
+On 2026-11-12 the candidate image moved to the newer pinned official Node 24 image and stable Alpine zlib 1.4-r0 vendor package. Actual installed Alpine package origins/versions were compared against official v3.24 secfix feeds: 19 packages, 154 version checks, no below-fix candidates. See ALPINE_ADVISORY_CHECK.json and VERIFICATION.md. This is not exhaustive image scanning: Node's bundled components, unknown vulnerabilities and runtime reachability are outside that check. No claim of vulnerability-free software.
+
+## Image and Node follow-up (2026-11-12)
+
+Unused npm/npx/yarn tools were removed from the runtime after Trivy detected 19 npm-toolchain advisory instances. The rebuilt image reports zero known findings in Trivy 0.76.2 OS/package scan. Node core advisory ranges were separately compared against 24.22.3, subtracting patched ranges: no unresolved entries. See IMAGE_SCAN.json, NODE_ADVISORY_CHECK.json and VERIFICATION.md for exact scope. This does not certify absence of vulnerabilities, full embedded-library coverage or production readiness.

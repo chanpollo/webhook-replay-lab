@@ -1,8 +1,10 @@
-# Current release: v0.2.0-beta.1
+# Release readiness — 2026-11-12
 
-Private self-host pilot, not production-ready. Added encrypted persistent snapshots, crash-aware replay records, bounded signed custom ingress, DNS deadlines, recovery/backup instructions and regression tests. Hostinger deployment is blocked: the verified account has Single shared hosting and no VPS. No paid provisioning authorized. Actual host restore/TLS/proxy/abuse checks and real external staging replay remain mandatory gates. Native provider adapters, multi-user isolation, comprehensive DLP, key migration and delivery guarantees are not implemented.
+Latest published version: v0.2.1. The local working tree is unreleased and still reports 0.3.0. Do not promote it to 1.0 by renaming the package.
 
-The earlier phase plan below is retained as roadmap/history; completed beta features do not mean every phase exit criterion passed.
+The owner's goal is a useful product other developers can adopt, compatible with Hostinger self-hosting, with competitive core workflows and clear UI. Private single-user test success alone does not satisfy that goal. See [v1 readiness](docs/RELEASE_READINESS.md) for open gates, including the distinction between a staging workbench and a production delivery gateway.
+
+The phase plan below remains the roadmap. No pending criterion is waived by this status correction.
 
 # Development plan
 

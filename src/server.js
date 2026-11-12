@@ -3,6 +3,8 @@ import { randomBytes, randomUUID, timingSafeEqual, createHmac } from 'node:crypt
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.js';
+import { readBuildInfo } from './build-info.js';
+import { validateFixture, validateCollection } from './fixture.js';
 import { redact, digest, targetURL, resolveTarget, transmit, differences } from './core.js';
 
 function boundedPayload(value) {
@@ -41,6 +43,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
   const initial=store?store.load():null;
   if(initial!==null && (typeof initial!=='object' || initial.version!==1 || !Array.isArray(initial.events) || initial.events.length>200 || !Array.isArray(initial.receipts) || initial.receipts.length>2000)) throw new Error('Invalid persisted state');
   if(initial)validateState(initial);
+  const buildInfo = readBuildInfo();
   const events = new Map((initial?.events||[]).map(e=>[e.id,e])), approvals = new Map(), receipts=new Map(initial?.receipts||[]);
   let storageHealthy=true;
   const persist=()=>{try{store?.save({version:1,events:[...events.values()],receipts:[...receipts]});}catch{storageHealthy=false;throw new Error('Storage unavailable; stop and restore before continuing');}};
@@ -66,7 +69,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
       if(req.method==='GET' && req.url==='/healthz')return reply(200,{status:'ok'});
       if(req.method==='GET' && req.url==='/') {
         res.writeHead(200,{'content-type':'text/html','cache-control':'no-store','content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"});
-        return res.end(readFileSync(new URL('./index.html',import.meta.url)));
+        return res.end(readFileSync(new URL('./index.html',import.meta.url), 'utf8').replace('__LAB_VERSION__', buildInfo.version).replace('__LAB_BUILD__', buildInfo.build));
       }
       if(req.method==='GET' && ['/app.js','/analytics.js','/style.css'].includes(req.url)) {
         res.writeHead(200,{'content-type':req.url.endsWith('.js')?'text/javascript':'text/css','x-content-type-options':'nosniff'});
@@ -81,10 +84,12 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
       let input={},rawBody;
       if(ingress && Number(req.headers['content-length'])>65536)return reply(413,{error:'64 KB request limit'});
       if(req.method==='POST') {
+        const collectionRoute=['/api/collections/preview','/api/collections/import'].includes(req.url);
+        const bodyLimit=collectionRoute?263168:['/api/fixtures/preview','/api/fixtures/import'].includes(req.url)?66560:65536;
         if(!req.headers['content-type']?.startsWith('application/json')) return reply(415,{error:'JSON required'});
         const chunks=[];let bytes=0;
         const bodyTimer=setTimeout(()=>req.destroy(),5000);
-        try{for await(const chunk of req){bytes+=chunk.length;if(bytes>65536){reply(413,{error:'64 KB request limit'});req.destroy();return;}chunks.push(chunk);}}finally{clearTimeout(bodyTimer);}
+        try{for await(const chunk of req){bytes+=chunk.length;if(bytes>bodyLimit){reply(413,{error:bodyLimit===65536?'64 KB request limit':collectionRoute?'257 KB collection request limit':'65 KB fixture request limit'});req.destroy();return;}chunks.push(chunk);}}finally{clearTimeout(bodyTimer);}
         rawBody=Buffer.concat(chunks);
         const raw=new TextDecoder('utf-8',{fatal:true}).decode(rawBody);
         input=JSON.parse(raw||'{}');
@@ -107,6 +112,29 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         if(!input.payload || typeof input.payload!=='object') return reply(400,{error:'JSON object or array payload required'});
         const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input.payload),label:redact(String(input.label||'Captured JSON')).slice(0,80),attempts:[]};
         events.set(event.id,event);persist();return reply(201,event);
+      }
+      if(req.method==='POST' && ['/api/fixtures/preview','/api/fixtures/import'].includes(req.url)) {
+        const validated=validateFixture(input.fixture);
+        if(req.url==='/api/fixtures/preview')return reply(200,validated);
+        if(input.confirmHash!==validated.sha256)return reply(400,{error:'Review the sanitized fixture before importing'});
+        if(events.size>=200)return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
+        const event={id:randomUUID(),createdAt:now(),payload:validated.payload,label:'Imported fixture',attempts:[]};
+        events.set(event.id,event);persist();return reply(201,event);
+      }
+      if(req.method==='POST' && req.url==='/api/collections/export') {
+        if(!Array.isArray(input.ids)||input.ids.length<1||input.ids.length>20||new Set(input.ids).size!==input.ids.length)return reply(400,{error:'Select 1–20 distinct retained event IDs'});
+        const fixtures=input.ids.map(id=>{const event=events.get(id);if(!event)throw Error('Event expired or missing');return {name:id,fixture:{version:1,payload:event.payload,sha256:digest(event.payload)}};});
+        const validated=validateCollection({kind:'webhook-fixture-collection',version:1,name:'Exported events',fixtures});
+        return reply(200,validated.collection);
+      }
+      if(req.method==='POST' && ['/api/collections/preview','/api/collections/import'].includes(req.url)) {
+        const validated=validateCollection(input.collection);
+        if(req.url==='/api/collections/preview')return reply(200,validated);
+        if(input.confirmHash!==validated.sha256)return reply(400,{error:'Review the sanitized collection before importing'});
+        if(events.size+validated.collection.fixtures.length>200)return reply(409,{error:'Not enough inbox capacity for this collection'});
+        const imported=validated.collection.fixtures.map(entry=>({id:randomUUID(),createdAt:now(),payload:entry.fixture.payload,label:('Imported: '+entry.name).slice(0,80),attempts:[]}));
+        for(const event of imported)events.set(event.id,event);
+        persist();return reply(201,{events:imported});
       }
       const fixture=req.url?.match(/^\/api\/events\/([\w-]+)\/fixture$/);
       if(req.method==='GET' && fixture){const event=events.get(fixture[1]);return event?reply(200,{version:1,payload:event.payload,sha256:digest(event.payload)}):reply(404,{error:'Event expired or missing'});}

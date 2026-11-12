@@ -4,7 +4,7 @@ Reviewed against PLAN.md, PRODUCT.md, README and HOSTINGER.md on 2026-11-12. A s
 
 ## Verified foundation
 
-Candidate `0b28126` / runtime `ea172c04549a`: 66 local tests, Node 22/24 CI, hardened container/persistence, isolated lifecycle/recovery, independent source review of the IPv6 change, known-advisory image/Node checks, and one controlled external HTTPS replay with a single matching receipt. The temporary endpoint is closed. No live product deployment or new formal release exists.
+Candidate `c144300` / runtime `98aadcff4fdf`: 92 local tests, Node 22/24 CI, hardened container/persistence, isolated lifecycle/recovery, independent source review of the IPv6 change, known-advisory image/Node checks, and one controlled external HTTPS replay with a single matching receipt. The temporary endpoint is closed. No live product deployment or new formal release exists.
 
 ## Concrete unfinished work
 
@@ -24,4 +24,4 @@ Candidate `0b28126` / runtime `ea172c04549a`: 66 local tests, Node 22/24 CI, har
 2. **Hostinger route:** validate compatibility on owned hardware and apply to the program first, or additionally provision an actual authorized Hostinger VPS for customer-install acceptance? Do not purchase hosting automatically or invent program credentials/approval.
 3. **Formal publication:** source push and green CI do not resolve any pending confirmation for creating the GitHub release. Use exact tested source and honest release notes when that boundary is resolved.
 
-Implemented locally after this review: additive JSONPath redaction/preview, capture/read credentials with restart rotation, read-only doctor, and bounded loopback capacity/abuse tests. These changes still require final candidate CI and do not establish production throughput or human usability. Task-based onboarding and operational evidence can continue. Final decisions above determine which implementation blocks v1 versus later milestones; do not mark them complete by renaming the version.
+Implemented locally after this review: additive JSONPath redaction/preview, capture/read credentials with restart rotation, read-only doctor, and bounded loopback capacity/abuse tests. Exact runtime candidate CI and repeated owned-host/external acceptance passed; see FINAL_CANDIDATE_ACCEPTANCE.md. These results do not establish production throughput or human usability. Task-based onboarding and operational evidence can continue. Final decisions above determine which implementation blocks v1 versus later milestones; do not mark them complete by renaming the version.

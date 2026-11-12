@@ -29,8 +29,10 @@ try {
   const override=join(temp,'isolated.yaml');
   writeFileSync(override,'services:\n  lab:\n    ports: !reset []\n    network_mode: none\nvolumes:\n  restore-data:\n');
   const isolated=[...base,'-f',override];cleanup=isolated;
+  // Allow multiple 30-second image healthcheck intervals on slower hosts.
+  // Assertions and cleanup remain unchanged; a timeout is still a failure.
   started=true;
-  run([...isolated,'up','-d','--build','--wait','--wait-timeout','30']);
+  run([...isolated,'up','-d','--build','--wait','--wait-timeout','90']);
   const js=`
     const headers={authorization:'Bearer '+process.env.LAB_TOKEN,'content-type':'application/json'};
     const r=await fetch('http://127.0.0.1:4319/api/events',{method:'POST',headers,body:JSON.stringify({label:'Synthetic Hostinger profile test',payload:{synthetic:true,password:'redact-me'}})});
@@ -42,7 +44,7 @@ try {
   run([...isolated,'exec','-T','lab','node','--input-type=module','-e',js]);
   const packages=run([...isolated,'exec','-T','lab','apk','info','-v']);assert.match(packages,/(?:^|\n)zlib-1\.4-r0(?:\n|$)/,'vendor zlib security fix required');
   run([...isolated,'stop']);
-  run([...isolated,'up','-d','--wait','--wait-timeout','30']);
+  run([...isolated,'up','-d','--wait','--wait-timeout','90']);
   run([...isolated,'exec','-T','lab','node','--input-type=module','-e',`
     const r=await fetch('http://127.0.0.1:4319/api/events',{headers:{authorization:'Bearer '+process.env.LAB_TOKEN}});
     const b=await r.json();
@@ -59,7 +61,7 @@ try {
     import {writeFileSync} from 'node:fs';
     writeFileSync('/data/inbox.enc',Buffer.from(process.argv[1],'base64'),{mode:0o600,flag:'wx'});
   `,readFileSync(backup).toString('base64')]);
-  run([...restored,'up','-d','--force-recreate','--wait','--wait-timeout','30']);
+  run([...restored,'up','-d','--force-recreate','--wait','--wait-timeout','90']);
   run([...restored,'exec','-T','lab','node','--input-type=module','-e',`
     const r=await fetch('http://127.0.0.1:4319/api/events',{headers:{authorization:'Bearer '+process.env.LAB_TOKEN}});
     const b=await r.json();

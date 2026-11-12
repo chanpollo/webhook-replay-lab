@@ -33,6 +33,6 @@ Per-inbox scoped keys, signature-verification adapters, response/body comparison
 
 ## Implemented since the initial hypothesis
 
-Opt-in encrypted persistence, Overview and retained replay history are implemented. The current working tree also validates and previews saved version-1 fixtures before local import. These close parts of the workflow, not the remaining product/adoption, live-host or security gates. See [release readiness](RELEASE_READINESS.md).
+Opt-in encrypted persistence, Overview and retained replay history are implemented. The current main candidate also validates and previews saved version-1 fixtures before local import. These close parts of the workflow, not the remaining product/adoption, live-host or security gates. See [release readiness](RELEASE_READINESS.md).
 
-Portable collections and the explicit CI fixture CLI are now in the working tree; usage and limitations are in FIXTURES.md. Adoption, server deployment and security gates remain unpassed.
+Portable collections and the explicit CI fixture CLI are implemented; usage and limitations are in FIXTURES.md. Owned-host sandbox lifecycle checks, controlled external HTTPS replay and exact candidate CI/security gates have passed (see RELEASE_READINESS.md and EXTERNAL_HTTPS_ACCEPTANCE.md). Human adoption evidence, actual Hostinger installation/partner acceptance, public ingress hardening and product-scale gates remain open.

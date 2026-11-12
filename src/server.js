@@ -1,14 +1,16 @@
 import http from 'node:http';
+import {createRedactor,readRedactionPaths} from './redaction.js';
 import { randomBytes, randomUUID, timingSafeEqual, createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.js';
+import {createCredentialPolicy,readScopedCredentials} from './auth.js';
 import { readBuildInfo } from './build-info.js';
 import { validateFixture, validateCollection } from './fixture.js';
 import { redact, digest, targetURL, resolveTarget, transmit, differences } from './core.js';
 
-function boundedPayload(value) {
-  const payload=redact(value);
+function boundedPayload(value, sanitize=redact) {
+  const payload=sanitize(value);
   if(Buffer.byteLength(JSON.stringify(payload))>65536)throw new Error('Sanitized payload exceeds the 64 KB storage limit');
   return payload;
 }
@@ -36,13 +38,14 @@ export function createLab(options={}) {
   try { return buildLab(options); }
   catch(error) { try { options.store?.close(); } catch {} throw error; }
 }
-function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null}={}) {
-  if (!token || token.length<32) throw new Error('Admin token must have at least 32 characters');
+function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null, redactionPaths=[], scopedCredentials=[]}={}) {
+  const credentials=createCredentialPolicy({adminToken:token,credentials:scopedCredentials});
+  const sanitize=createRedactor(redactionPaths);
   allowlist.forEach(url=>targetURL(url,allowlist));
   if (ingressKey && (!store || !/^[a-f0-9]{64}$/i.test(ingressKey))) throw new Error('Ingress requires persistent storage and a 32-byte hex signing key');
   const initial=store?store.load():null;
   if(initial!==null && (typeof initial!=='object' || initial.version!==1 || !Array.isArray(initial.events) || initial.events.length>200 || !Array.isArray(initial.receipts) || initial.receipts.length>2000)) throw new Error('Invalid persisted state');
-  if(initial)validateState(initial);
+  if(initial){validateState(initial);for(const event of initial.events)if(digest(event.payload)!==digest(sanitize(event.payload)))throw Error("Stored payload conflicts with redaction policy; use an isolated sanitized migration before startup");}
   const buildInfo = readBuildInfo();
   const events = new Map((initial?.events||[]).map(e=>[e.id,e])), approvals = new Map(), receipts=new Map(initial?.receipts||[]);
   let storageHealthy=true;
@@ -50,8 +53,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
   for(const event of events.values()) for(const attempt of event.attempts) if(['validating','sending'].includes(attempt.outcome)) {attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';attempt.error='Process interrupted; inspect destination before retry';}
   if(initial)persist();
   const ttl = 24*60*60*1000;
-  let nextReplay = 0, windowStart=now(), requests=0,ingressRequests=0;
-  const auth = candidate => typeof candidate==='string' && Buffer.byteLength(candidate)===Buffer.byteLength(token) && timingSafeEqual(Buffer.from(candidate),Buffer.from(token));
+  let nextReplay = 0, windowStart=now(), requests=new Map(),ingressRequests=0;
   const sweep = () => {let changed=false;for(const [id,e] of events) if(now()-e.createdAt>=ttl&&!e.attempts.some(a=>['validating','sending'].includes(a.outcome))){events.delete(id);changed=true;}for(const [id,a] of approvals) if(now()>=a.expires) approvals.delete(id);for(const [id,at] of receipts)if(now()-at>=600000){receipts.delete(id);changed=true;}if(changed)persist();};
   const timer=setInterval(()=>{if(storageHealthy)try{sweep();}catch{}},30000);timer.unref();
   let budgetStart=now(),budget=0;
@@ -59,9 +61,9 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
     const reply=(status,data)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
     try {
       if(now()-budgetStart>=60000){budgetStart=now();budget=0;}
-      const authorized=auth((req.headers.authorization||'').replace(/^Bearer /,''));
+      const principal=credentials.authenticate(req.headers.authorization),authorized=!!principal;
       const privateStatic=req.method==='GET'&&['/','/app.js','/analytics.js','/style.css','/healthz'].includes(req.url);
-      if(!authorized&&!privateStatic&&++budget>600)return reply(429,{error:'Public request limit exceeded'});
+      if((!authorized||!credentials.allows(principal,req.method,req.url)||req.url==='/ingress')&&!privateStatic&&++budget>600)return reply(429,{error:'Public request limit exceeded'});
       if(!storageHealthy)return reply(503,{error:'Storage unavailable; operator intervention required'});
       const host=(req.headers.host||'').split(':')[0];
       if(!['localhost','127.0.0.1'].includes(host)) return reply(403,{error:'Local Host header required'});
@@ -78,9 +80,10 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
       const ingress=req.method==='POST' && req.url==='/ingress';
       if(ingress && !ingressKey)return reply(404,{error:'Ingress disabled'});
       if(!ingress && !authorized) return reply(401,{error:'Private inbox: valid bearer token required'});
+      if(!ingress&&!credentials.allows(principal,req.method,req.url))return reply(403,{error:'Credential scope does not permit this operation'});
       sweep();
-      if(now()-windowStart>=60000){windowStart=now();requests=0;ingressRequests=0;}
-      if(!ingress&&++requests>120) return reply(429,{error:'120 requests/minute limit'});
+      if(now()-windowStart>=60000){windowStart=now();requests.clear();ingressRequests=0;}
+      if(!ingress){const count=(requests.get(principal.id)||0)+1;requests.set(principal.id,count);if(count>120)return reply(429,{error:'120 requests/minute limit'});}
       let input={},rawBody;
       if(ingress && Number(req.headers['content-length'])>65536)return reply(413,{error:'64 KB request limit'});
       if(req.method==='POST') {
@@ -103,18 +106,19 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         if(++ingressRequests>120)return reply(429,{error:'Signed ingress request limit exceeded'});
         if(receipts.has(id))return reply(200,{duplicate:true});
         if(events.size>=200||receipts.size>=2000)return reply(409,{error:'Inbox or receipt capacity reached'});
-        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input),label:'Signed ingress',attempts:[]};
+        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input,sanitize),label:'Signed ingress',attempts:[]};
         events.set(event.id,event);receipts.set(id,now());persist();return reply(201,{id:event.id});
       }
+      if(req.method==='POST' && req.url==='/api/redaction/preview'){if(!input.payload||typeof input.payload!=='object')return reply(400,{error:'JSON object or array payload required'});const payload=boundedPayload(input.payload,sanitize);return reply(200,{payload,sha256:digest(payload),stored:false,customRuleCount:redactionPaths.length});}
       if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,maxAttemptsPerEvent:20,serverTime:now(),persistent:!!store,ingressEnabled:!!ingressKey});
       if(req.method==='POST' && req.url==='/api/events') {
         if(events.size>=200) return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
         if(!input.payload || typeof input.payload!=='object') return reply(400,{error:'JSON object or array payload required'});
-        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input.payload),label:redact(String(input.label||'Captured JSON')).slice(0,80),attempts:[]};
+        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input.payload,sanitize),label:redact(String(input.label||'Captured JSON')).slice(0,80),attempts:[]};
         events.set(event.id,event);persist();return reply(201,event);
       }
       if(req.method==='POST' && ['/api/fixtures/preview','/api/fixtures/import'].includes(req.url)) {
-        const validated=validateFixture(input.fixture);
+        const validated=validateFixture(input.fixture,sanitize);
         if(req.url==='/api/fixtures/preview')return reply(200,validated);
         if(input.confirmHash!==validated.sha256)return reply(400,{error:'Review the sanitized fixture before importing'});
         if(events.size>=200)return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
@@ -128,7 +132,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         return reply(200,validated.collection);
       }
       if(req.method==='POST' && ['/api/collections/preview','/api/collections/import'].includes(req.url)) {
-        const validated=validateCollection(input.collection);
+        const validated=validateCollection(input.collection,sanitize);
         if(req.url==='/api/collections/preview')return reply(200,validated);
         if(input.confirmHash!==validated.sha256)return reply(400,{error:'Review the sanitized collection before importing'});
         if(events.size+validated.collection.fixtures.length>200)return reply(409,{error:'Not enough inbox capacity for this collection'});
@@ -181,8 +185,11 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const configuredToken=secret('LAB_TOKEN');
   const token=configuredToken || randomBytes(32).toString('hex');
   const allowlist=(process.env.STAGING_ALLOWLIST||'').split(',').filter(Boolean);
+  const redactionPaths=readRedactionPaths(process.env.LAB_REDACTION_PATHS_FILE);
+  const scopedCredentials=readScopedCredentials(process.env.LAB_SCOPED_TOKENS_FILE);
+  const ingressKey=secret('LAB_INGRESS_KEY');
   const store=process.env.LAB_DATA_PATH?createStore({path:process.env.LAB_DATA_PATH,key:secret('LAB_STORAGE_KEY')}):null;
-  const server=createLab({token,allowlist,store,ingressKey:secret('LAB_INGRESS_KEY')});
+  const server=createLab({token,allowlist,store,ingressKey,redactionPaths,scopedCredentials});
   server.requestTimeout=10000;server.headersTimeout=10000;
   const port=Number(process.env.PORT||4319),host=process.env.CONTAINER_MODE==='1'?'0.0.0.0':'127.0.0.1';
   for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>process.exit(0));setTimeout(()=>process.exit(1),10000).unref();});

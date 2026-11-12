@@ -64,7 +64,7 @@
   "token": "synthetic-secret"
 }</textarea>
           <p id="redaction-note" class="hint">Sensitive field names and emails are redacted before storage. Review free text yourself.</p>
-          <div class="actions"><button id="capture">Capture event <span aria-hidden="true">↗</span></button><button id="sample" class="secondary">Reset sample</button></div>
+          <div class="actions"><button id="previewRedaction" class="secondary">Preview redaction</button><button id="capture">Capture event <span aria-hidden="true">↗</span></button><button id="sample" class="secondary">Reset sample</button></div><div id="redactionReview" hidden><p class="hint">Preview only. Nothing stored or sent. Review free text before capture.</p><pre id="redactionPreview" tabindex="0" aria-label="Redacted capture preview"></pre></div>
           <details class="fixture-import"><summary>Import fixtures</summary>
             <label for="fixtureInput">Fixture JSON</label><textarea id="fixtureInput" rows="5" spellcheck="false" placeholder="Paste a version 1 fixture or collection"></textarea>
             <button id="previewFixture" class="secondary">Validate &amp; preview</button>

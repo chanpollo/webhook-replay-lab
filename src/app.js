@@ -27,7 +27,7 @@ async function refresh(){
 $('connect').onclick=()=>action(refresh);
 $('token').oninput=()=>{clearFixture();$('fixtureInput').value='';session++;events=[];snapshot=null;historyLimit=20;choose(null);renderDashboard();$('refresh').disabled=true;$('freshness').textContent='Locked. Unlock to load actual captured records.';$('detail').textContent='Locked';$('storage').textContent='Locked';$('diff').textContent='No comparison yet.';$('result').textContent='No replay result in this session.';$('target').replaceChildren(new Option('Unlock to load destinations',''));$('status').textContent='Token changed; unlock inbox';};
 let pendingFixture=null,fixtureGeneration=0;
-function clearFixture() {fixtureGeneration++;pendingFixture=null;$('fixtureReview').hidden=true;$('fixturePreview').textContent='';}
+function clearFixture() {clearRedaction();fixtureGeneration++;pendingFixture=null;$('fixtureReview').hidden=true;$('fixturePreview').textContent='';}
 $('fixtureInput').oninput=clearFixture;
 $('cancelFixture').onclick=clearFixture;
 $('previewFixture').onclick=()=>action(async()=>{
@@ -46,8 +46,12 @@ $('importFixture').onclick=()=>action(async()=>{
   const request=pendingFixture;clearFixture();
   const result=await api(request.route+'/import',request.body);$('fixtureInput').value='';await refresh();choose(result.id||result.events[0].id);
 });
+let redactionGeneration=0;
+function clearRedaction(){redactionGeneration++;$('redactionReview').hidden=true;$('redactionPreview').textContent='';}
+$('payload').oninput=clearRedaction;
+$('previewRedaction').onclick=()=>action(async()=>{clearRedaction();const generation=redactionGeneration;const preview=await api('redaction/preview',{payload:JSON.parse($('payload').value)});if(generation!==redactionGeneration)return;$('redactionPreview').textContent=json(preview.payload);$('redactionReview').hidden=false;});
 $('capture').onclick=()=>action(async()=>{const event=await api('events',{label:$('label').value,payload:JSON.parse($('payload').value)});await refresh();choose(event.id);});
-$('sample').onclick=()=>{$('label').value='Synthetic order';$('payload').value=json({type:'order.created',order:{id:'demo-001',amount:1499,currency:'THB'},email:'demo@example.test',token:'synthetic-secret'});};
+$('sample').onclick=()=>{clearRedaction();$('label').value='Synthetic order';$('payload').value=json({type:'order.created',order:{id:'demo-001',amount:1499,currency:'THB'},email:'demo@example.test',token:'synthetic-secret'});};
 $('export').onclick=()=>action(async()=>{const fixture=await api('events/'+selected+'/fixture');const url=URL.createObjectURL(new Blob([JSON.stringify(fixture)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='webhook-fixture-'+selected+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 $('exportCollection').onclick=()=>action(async()=>{
   const ids=filteredEvents().map(event=>event.id);if(ids.length<1||ids.length>20)throw Error('Filter the inbox to 1–20 events before exporting');

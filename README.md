@@ -154,3 +154,9 @@ See [v1 release readiness](docs/RELEASE_READINESS.md) for the current unpassed g
 ## License
 
 MIT. See [development plan](PLAN.md) and [changelog](CHANGELOG.md). No service deployment is included.
+
+## Operator checks and access
+
+Run `npm run doctor` before startup for read-only configuration diagnostics (no network probe or secret output). See [onboarding diagnostics](docs/ONBOARDING_DIAGNOSTICS.md).
+
+Optional [scoped credentials](docs/SCOPED_CREDENTIALS.md) grant capture-only or read-only access to the same inbox; they are not tenant isolation. Rotate by replacing the private configuration and gracefully restarting. Optional [redaction rules](docs/REDACTION.md) add restricted JSONPath masking to default redaction. Use **Preview redaction** before capture. Stricter rules fail closed on incompatible retained payloads instead of silently exposing them.

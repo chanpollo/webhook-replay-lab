@@ -2,8 +2,16 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable source commit to test (blank uses workflow commit)
+        required: false
+        type: string
 permissions:
   contents: read
+env:
+  HOOK_REQUESTED_SOURCE: ${{ inputs.source_sha || github.sha }}
 jobs:
   node:
     runs-on: ubuntu-latest
@@ -13,6 +21,16 @@ jobs:
         node: [22, 24]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node }}
@@ -25,6 +43,16 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - run: LAB_TOKEN=synthetic-ci-validation-token-00000000 docker compose config --quiet
       - name: Validate verified-image Compose profile
         run: LAB_IMAGE=webhook-replay-lab:synthetic-validation LAB_TOKEN=synthetic-ci-validation-token-00000000 LAB_STORAGE_KEY=$(printf 'ab%.0s' {1..32}) docker compose -f compose.image.yaml config --quiet
@@ -98,14 +126,15 @@ jobs:
           set -euo pipefail
           mkdir -p image-artifact
           version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
-          tag="webhook-replay-lab:${version}-${GITHUB_SHA:0:12}-amd64"
+          source_sha=$(git rev-parse HEAD)
+          tag="webhook-replay-lab:${version}-${source_sha:0:12}-amd64"
           image_id=$(cat security-evidence/image-id.txt)
           docker tag "$image_id" "$tag"
           docker image save "$tag" | gzip -n > image-artifact/webhook-replay-lab-linux-amd64.tar.gz
           (cd image-artifact && sha256sum webhook-replay-lab-linux-amd64.tar.gz > SHA256SUMS)
           gzip -dc image-artifact/webhook-replay-lab-linux-amd64.tar.gz | docker image load
           test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$image_id"
-          IMAGE_ID="$image_id" IMAGE_TAG="$tag" node --input-type=module -e 'import fs from "node:fs";import {readBuildInfo} from "./src/build-info.js";fs.writeFileSync("image-artifact/build.json",JSON.stringify({...readBuildInfo(),commit:process.env.GITHUB_SHA,imageId:process.env.IMAGE_ID,tag:process.env.IMAGE_TAG,platform:"linux/amd64",archiveFormat:"docker-save+gzip",publishedRegistry:false},null,2)+"\n")'
+          TESTED_SOURCE_SHA="$source_sha" IMAGE_ID="$image_id" IMAGE_TAG="$tag" node --input-type=module -e 'import fs from "node:fs";import {readBuildInfo} from "./src/build-info.js";fs.writeFileSync("image-artifact/build.json",JSON.stringify({...readBuildInfo(),commit:process.env.TESTED_SOURCE_SHA,workflowCommit:process.env.GITHUB_SHA,imageId:process.env.IMAGE_ID,tag:process.env.IMAGE_TAG,platform:"linux/amd64",archiveFormat:"docker-save+gzip",publishedRegistry:false},null,2)+"\n")'
       - name: Retain verified candidate image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -128,6 +157,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: verified-image-linux-amd64
@@ -159,6 +198,16 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24
@@ -167,7 +216,7 @@ jobs:
         env:
           LAB_ENDURANCE_SECONDS: 1800
           LAB_ENDURANCE_OUTPUT: endurance.json
-        run: node test/endurance.mjs | tee endurance.log
+        run: GITHUB_SHA="$(git rev-parse HEAD)" node test/endurance.mjs | tee endurance.log
       - name: Retain capacity reference and measurements
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -184,6 +233,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 24

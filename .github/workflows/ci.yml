@@ -64,6 +64,9 @@ jobs:
       - name: Check private Hostinger Compose profile
         run: npm run test:hostinger
 
+      - name: Check isolated ingress reverse proxy
+        run: LAB_TEST_IMAGE=webhook-replay-lab:test npm run test:proxy
+
       - name: Scan immutable final image and Node advisories
         shell: bash
         run: |

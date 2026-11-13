@@ -3,6 +3,7 @@
 import {openSync,fstatSync,readSync,closeSync,constants} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {targetURL} from '../src/core.js';
+import {readStripeSecret,createStripeVerifier} from '../src/provider-signatures.js';
 import {createRedactor} from '../src/redaction.js';
 import {randomBytes} from 'node:crypto';
 import {createCredentialPolicy,readScopedCredentials} from '../src/auth.js';
@@ -19,6 +20,7 @@ export function diagnose(env=process.env,nodeVersion=process.versions.node) {
  if(env.LAB_DATA_PATH)add('storage_key',/^[a-f0-9]{64}$/i.test(key)?'pass':'fail',/^[a-f0-9]{64}$/i.test(key)?undefined:'Supply a 64-character hexadecimal key paired with existing data; never replace an existing key without migration.');
  if(ingress)add('signed_ingress',env.LAB_DATA_PATH&&/^[a-f0-9]{64}$/i.test(ingress)?'warn':'fail','Signed ingress requires persistent storage, a separate 64-character hexadecimal key and an independently reviewed exposure plan.');
  else add('signed_ingress','pass');
+ try{const stripeSecret=readStripeSecret(env);if(stripeSecret!==null){createStripeVerifier({secret:stripeSecret});add('stripe_ingress',env.LAB_DATA_PATH?'warn':'fail','Stripe test-mode ingress requires encrypted persistence and an independently reviewed exposure plan; no public route or provider account was verified.');}else add('stripe_ingress','pass');}catch{add('stripe_ingress','fail','Configure one valid Stripe signing-secret source only: an environment value or private owned non-linked regular file up to 4 KB.');}
  if(env.LAB_REDACTION_PATHS_FILE){try{createRedactor(JSON.parse(boundedFile(env.LAB_REDACTION_PATHS_FILE,16384)));add('redaction_paths','pass');}catch{add('redaction_paths','fail','Use a regular JSON file up to 16 KB containing at most 32 supported restricted JSONPath rules.');}}
  const allowlist=(env.STAGING_ALLOWLIST||'').split(',').filter(Boolean);try{for(const u of allowlist)targetURL(u,allowlist);add('replay_allowlist',allowlist.length?'pass':'warn',allowlist.length?undefined:'No staging target configured; replay is disabled.');}catch{add('replay_allowlist','fail','Use exact owned staging HTTPS hostname URLs on port 443 without credentials, query or fragment.');}
  const port=env.PORT===undefined?4319:Number(env.PORT);add('port',Number.isInteger(port)&&port>=1&&port<=65535?'pass':'fail',Number.isInteger(port)&&port>=1&&port<=65535?undefined:'Use an integer TCP port from 1 to 65535.');

@@ -4,6 +4,14 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
+### Next candidate work (not yet release acceptance)
+
+- Add administrator-only, low-cardinality operational diagnostics without payloads, identifiers or target URLs.
+- Harden ingress header/body concurrency, timestamp boundaries and persisted payload-conflict detection while preserving legacy snapshot readability.
+- Add an opt-in Stripe test-mode signature adapter; never accept live-mode events or forward original provider authorization/signatures.
+- Add an isolated Caddy route-isolation CI gate, a Release 1 roadmap and a multi-platform installation guide with explicit tested/untested coverage.
+- These changes need their own exact-commit CI and relevant host/provider acceptance; the earlier external-receiver evidence below does not certify the new runtime.
+
 ### Latest candidate additions and verification
 
 - Add restricted JSONPath redaction rules on top of default masking, a non-storing Workbench preview, consistent capture/ingress/import sanitization and fail-closed startup for incompatible retained payloads.

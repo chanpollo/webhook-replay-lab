@@ -4,6 +4,16 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 **Release status (checked 2026-11-13): [v0.2.1](https://github.com/chanpollo/webhook-replay-lab/releases/tag/v0.2.1) is the latest published release. The main-branch candidate targets v0.3.0 and is unreleased.** The candidate includes fixture/collection import and export, explicit replay CLI, configurable redaction with preview, scoped capture/read credentials and operator diagnostics. It is a shared-inbox staging workbench, not a public webhook delivery gateway.
 
+## Documentation
+
+- [Install and platform support](docs/INSTALL.md)
+- [Release 1 roadmap](docs/ROADMAP.md)
+- [Fixtures and explicit replay CLI](docs/FIXTURES.md)
+- [Redaction rules](docs/REDACTION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
+- [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md)
+- [Provider ingress and staging limits](docs/PROVIDER_INGRESS.md)
+- [Self-hosting, backups and recovery](docs/SELF_HOSTING.md)
+
 ### Verified candidate evidence
 
 Runtime build `98aadcff4fdf` passed 92 tests, Node 22/24 CI, container/security checks, owned-host isolated install/upgrade/rollback/recovery and controlled external HTTPS replay. The receiver recorded one matching, redacted request with no forwarded Authorization header; scoped capture/read tokens could not replay. Temporary receivers were closed afterward. See [exact candidate acceptance and cleanup](docs/FINAL_CANDIDATE_ACCEPTANCE.md).

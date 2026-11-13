@@ -1,11 +1,13 @@
 import http from 'node:http';
 import {createRedactor,readRedactionPaths} from './redaction.js';
-import { randomBytes, randomUUID, timingSafeEqual, createHmac } from 'node:crypto';
+import { randomBytes, randomUUID, timingSafeEqual, createHmac, createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.js';
 import {createCredentialPolicy,readScopedCredentials} from './auth.js';
+import {createStripeVerifier,validateStripeSignatureHeader,readStripeSecret} from './provider-signatures.js';
 import { readBuildInfo } from './build-info.js';
+import { createOperationalMetrics } from './operations.js';
 import { validateFixture, validateCollection } from './fixture.js';
 import { redact, digest, targetURL, resolveTarget, transmit, differences } from './core.js';
 
@@ -31,6 +33,18 @@ function validateState(state) {
     if(!Array.isArray(receipt) || receipt.length!==2 || typeof receipt[0]!=='string' || !/^[A-Za-z0-9_-]{1,128}$/.test(receipt[0]) || receiptIds.has(receipt[0]) || !Number.isSafeInteger(receipt[1]) || receipt[1]<0)throw new Error('Invalid persisted ingress receipt');
     receiptIds.add(receipt[0]);
   }
+  if(state.receiptProviders!==undefined){
+    if(!Array.isArray(state.receiptProviders)||state.receiptProviders.length>2000)throw Error('Invalid persisted receipt providers');
+    const providers=new Set();for(const entry of state.receiptProviders){if(!Array.isArray(entry)||entry.length!==2||!receiptIds.has(entry[0])||providers.has(entry[0])||entry[1]!=='stripe')throw Error('Invalid persisted receipt provider');providers.add(entry[0]);}
+  }
+  if(state.receiptHashes!==undefined){
+    if(!Array.isArray(state.receiptHashes)||state.receiptHashes.length>2000)throw Error('Invalid persisted receipt hashes');
+    const hashes=new Set();
+    for(const entry of state.receiptHashes){
+      if(!Array.isArray(entry)||entry.length!==2||!receiptIds.has(entry[0])||hashes.has(entry[0])||typeof entry[1]!=='string'||!/^[a-f0-9]{64}$/.test(entry[1]))throw Error('Invalid persisted receipt hash');
+      hashes.add(entry[0]);
+    }
+  }
 }
 
 // Failed startup releases its own lock, never another writer's lock.
@@ -38,32 +52,36 @@ export function createLab(options={}) {
   try { return buildLab(options); }
   catch(error) { try { options.store?.close(); } catch {} throw error; }
 }
-function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null, redactionPaths=[], scopedCredentials=[]}={}) {
+function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, now=Date.now, store=null, ingressKey=null, redactionPaths=[], scopedCredentials=[], stripeSecret=null}={}) {
   const credentials=createCredentialPolicy({adminToken:token,credentials:scopedCredentials});
   const sanitize=createRedactor(redactionPaths);
   allowlist.forEach(url=>targetURL(url,allowlist));
   if (ingressKey && (!store || !/^[a-f0-9]{64}$/i.test(ingressKey))) throw new Error('Ingress requires persistent storage and a 32-byte hex signing key');
+  if(stripeSecret&&!store)throw Error('Stripe staging ingress requires encrypted persistent storage');
+  const verifyStripe=stripeSecret?createStripeVerifier({secret:stripeSecret,now}):null;
   const initial=store?store.load():null;
   if(initial!==null && (typeof initial!=='object' || initial.version!==1 || !Array.isArray(initial.events) || initial.events.length>200 || !Array.isArray(initial.receipts) || initial.receipts.length>2000)) throw new Error('Invalid persisted state');
   if(initial){validateState(initial);for(const event of initial.events)if(digest(event.payload)!==digest(sanitize(event.payload)))throw Error("Stored payload conflicts with redaction policy; use an isolated sanitized migration before startup");}
   const buildInfo = readBuildInfo();
-  const events = new Map((initial?.events||[]).map(e=>[e.id,e])), approvals = new Map(), receipts=new Map(initial?.receipts||[]);
+  const operations=createOperationalMetrics({now});
+  const events = new Map((initial?.events||[]).map(e=>[e.id,e])), approvals = new Map(), receipts=new Map(initial?.receipts||[]), receiptHashes=new Map(initial?.receiptHashes||[]), receiptProviders=new Map(initial?.receiptProviders||[]);
   let storageHealthy=true;
-  const persist=()=>{try{store?.save({version:1,events:[...events.values()],receipts:[...receipts]});}catch{storageHealthy=false;throw new Error('Storage unavailable; stop and restore before continuing');}};
+  const persist=()=>{try{store?.save({version:1,events:[...events.values()],receipts:[...receipts],receiptHashes:[...receiptHashes],receiptProviders:[...receiptProviders]});}catch{storageHealthy=false;throw new Error('Storage unavailable; stop and restore before continuing');}};
   for(const event of events.values()) for(const attempt of event.attempts) if(['validating','sending'].includes(attempt.outcome)) {attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';attempt.error='Process interrupted; inspect destination before retry';}
   if(initial)persist();
   const ttl = 24*60*60*1000;
-  let nextReplay = 0, windowStart=now(), requests=new Map(),ingressRequests=0;
-  const sweep = () => {let changed=false;for(const [id,e] of events) if(now()-e.createdAt>=ttl&&!e.attempts.some(a=>['validating','sending'].includes(a.outcome))){events.delete(id);changed=true;}for(const [id,a] of approvals) if(now()>=a.expires) approvals.delete(id);for(const [id,at] of receipts)if(now()-at>=600000){receipts.delete(id);changed=true;}if(changed)persist();};
+  let nextReplay = 0, windowStart=now(), requests=new Map(),ingressRequests=0,ingressInFlight=0;
+  const sweep = () => {let changed=false;for(const [id,e] of events) if(now()-e.createdAt>=ttl&&!e.attempts.some(a=>['validating','sending'].includes(a.outcome))){events.delete(id);changed=true;}for(const [id,a] of approvals) if(now()>=a.expires) approvals.delete(id);for(const [id,at] of receipts)if(now()-at>=660000){receipts.delete(id);receiptHashes.delete(id);receiptProviders.delete(id);changed=true;}if(changed)persist();};
   const timer=setInterval(()=>{if(storageHealthy)try{sweep();}catch{}},30000);timer.unref();
   let budgetStart=now(),budget=0;
   const server = http.createServer(async(req,res)=>{
+    operations.observeResponse(res);
     const reply=(status,data)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
     try {
       if(now()-budgetStart>=60000){budgetStart=now();budget=0;}
       const principal=credentials.authenticate(req.headers.authorization),authorized=!!principal;
       const privateStatic=req.method==='GET'&&['/','/app.js','/analytics.js','/style.css','/healthz'].includes(req.url);
-      if((!authorized||!credentials.allows(principal,req.method,req.url)||req.url==='/ingress')&&!privateStatic&&++budget>600)return reply(429,{error:'Public request limit exceeded'});
+      if((!authorized||!credentials.allows(principal,req.method,req.url)||req.url==='/ingress'||req.url==='/ingress/stripe')&&!privateStatic&&++budget>600)return reply(429,{error:'Public request limit exceeded'});
       if(!storageHealthy)return reply(503,{error:'Storage unavailable; operator intervention required'});
       const host=(req.headers.host||'').split(':')[0];
       if(!['localhost','127.0.0.1'].includes(host)) return reply(403,{error:'Local Host header required'});
@@ -77,8 +95,28 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         res.writeHead(200,{'content-type':req.url.endsWith('.js')?'text/javascript':'text/css','x-content-type-options':'nosniff'});
         return res.end(readFileSync(new URL('.'+req.url,import.meta.url)));
       }
-      const ingress=req.method==='POST' && req.url==='/ingress';
-      if(ingress && !ingressKey)return reply(404,{error:'Ingress disabled'});
+      const stripeIngress=req.method==='POST'&&req.url==='/ingress/stripe';
+      const customIngress=req.method==='POST'&&req.url==='/ingress';
+      const ingress=customIngress||stripeIngress;
+      if((customIngress&&!ingressKey)||(stripeIngress&&!verifyStripe))return reply(404,{error:'Ingress disabled'});
+      let ingressHeaders;
+      if(customIngress){
+        const timestamp=req.headers['x-lab-timestamp'],id=req.headers['x-lab-event-id'],signature=req.headers['x-lab-signature'];
+        if(typeof timestamp!=='string'||!/^\d{10}$/.test(timestamp)||Math.abs(now()-Number(timestamp)*1000)>=300000||typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id)||typeof signature!=='string'||!/^sha256=[a-f0-9]{64}$/.test(signature))return reply(401,{error:'Valid timestamp, event ID and signature required'});
+        ingressHeaders={timestamp,id,signature};
+      }
+      let stripeHeaderCount;
+      if(stripeIngress){
+        stripeHeaderCount=req.rawHeaders.filter((value,index)=>index%2===0&&value.toLowerCase()==='stripe-signature').length;
+        try{validateStripeSignatureHeader({signatureHeader:req.headers['stripe-signature'],headerCount:stripeHeaderCount,nowMs:now()});}catch{return reply(401,{error:'Invalid Stripe webhook signature'});}
+      }
+      if(ingress){
+        if(ingressInFlight>=8)return reply(429,{error:'Ingress concurrency limit exceeded'});
+        ingressInFlight++;let released=false;
+        const release=()=>{if(!released){released=true;ingressInFlight--;}};
+        res.once('finish',release);res.once('close',release);
+      }
+
       if(!ingress && !authorized) return reply(401,{error:'Private inbox: valid bearer token required'});
       if(!ingress&&!credentials.allows(principal,req.method,req.url))return reply(403,{error:'Credential scope does not permit this operation'});
       sweep();
@@ -94,23 +132,36 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
         const bodyTimer=setTimeout(()=>req.destroy(),5000);
         try{for await(const chunk of req){bytes+=chunk.length;if(bytes>bodyLimit){reply(413,{error:bodyLimit===65536?'64 KB request limit':collectionRoute?'257 KB collection request limit':'65 KB fixture request limit'});req.destroy();return;}chunks.push(chunk);}}finally{clearTimeout(bodyTimer);}
         rawBody=Buffer.concat(chunks);
+        if(stripeIngress){try{verifyStripe({rawBody,signatureHeader:req.headers['stripe-signature'],headerCount:stripeHeaderCount});}catch{return reply(401,{error:'Invalid Stripe webhook signature'});}}
         const raw=new TextDecoder('utf-8',{fatal:true}).decode(rawBody);
         input=JSON.parse(raw||'{}');
         if(!input || typeof input!=='object')return reply(400,{error:'JSON object or array required'});
       }
-      if(ingress){
-        const timestamp=req.headers['x-lab-timestamp'],id=req.headers['x-lab-event-id'],signature=req.headers['x-lab-signature'];
-        if(typeof timestamp!=='string'||!/^\d{10}$/.test(timestamp)||Math.abs(now()-Number(timestamp)*1000)>300000||typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id)||typeof signature!=='string'||!/^sha256=[a-f0-9]{64}$/.test(signature))return reply(401,{error:'Valid timestamp, event ID and signature required'});
+      if(customIngress){
+        const {timestamp,id,signature}=ingressHeaders;
+        if(Math.abs(now()-Number(timestamp)*1000)>=300000)return reply(401,{error:'Signature expired while receiving body'});
         const expected=createHmac('sha256',Buffer.from(ingressKey,'hex')).update(timestamp+'.'+id+'.').update(rawBody).digest('hex');
         if(!timingSafeEqual(Buffer.from(signature.slice(7)),Buffer.from(expected)))return reply(401,{error:'Invalid signature'});
         if(++ingressRequests>120)return reply(429,{error:'Signed ingress request limit exceeded'});
-        if(receipts.has(id))return reply(200,{duplicate:true});
+        const rawHash=createHash('sha256').update(rawBody).digest('hex');
+        const receiptID=id;
+        if(receipts.has(id))return receiptProviders.has(id)?reply(409,{error:'Event ID belongs to another provider'}):receiptHashes.get(id)===rawHash?reply(200,{duplicate:true}):reply(409,{error:'Event ID already retained with different or unverifiable legacy payload'});
         if(events.size>=200||receipts.size>=2000)return reply(409,{error:'Inbox or receipt capacity reached'});
         const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input,sanitize),label:'Signed ingress',attempts:[]};
-        events.set(event.id,event);receipts.set(id,now());persist();return reply(201,{id:event.id});
+        events.set(event.id,event);receipts.set(receiptID,now());receiptHashes.set(receiptID,rawHash);persist();return reply(201,{id:event.id});
       }
+      if(stripeIngress){
+        if(Array.isArray(input)||input.object!=='event'||input.livemode!==false||typeof input.id!=='string'||!/^evt_[A-Za-z0-9]{1,120}$/.test(input.id))return reply(400,{error:'Stripe test-mode event with a valid event ID required'});
+        if(++ingressRequests>120)return reply(429,{error:'Signed ingress request limit exceeded'});
+        const receiptID='stripe_'+createHash('sha256').update(input.id).digest('hex'),rawHash=createHash('sha256').update(rawBody).digest('hex');
+        if(receipts.has(receiptID))return receiptProviders.get(receiptID)!=='stripe'?reply(409,{error:'Receipt namespace conflict; operator review required'}):receiptHashes.get(receiptID)===rawHash?reply(200,{duplicate:true}):reply(409,{error:'Event ID already retained with different or unverifiable legacy payload'});
+        if(events.size>=200||receipts.size>=2000)return reply(409,{error:'Inbox or receipt capacity reached'});
+        const event={id:randomUUID(),createdAt:now(),payload:boundedPayload(input,sanitize),label:'Stripe test ingress',attempts:[]};
+        events.set(event.id,event);receipts.set(receiptID,now());receiptHashes.set(receiptID,rawHash);receiptProviders.set(receiptID,'stripe');persist();return reply(201,{id:event.id});
+      }
+      if(req.method==='GET' && req.url==='/api/diagnostics'){if(principal?.scope!=='admin')return reply(403,{error:'Administrator credential required'});return reply(200,operations.snapshot({events:events.values(),pendingApprovals:approvals.size,receipts:receipts.size,persistent:!!store,ingressEnabled:!!(ingressKey||verifyStripe),storageHealthy}));}
       if(req.method==='POST' && req.url==='/api/redaction/preview'){if(!input.payload||typeof input.payload!=='object')return reply(400,{error:'JSON object or array payload required'});const payload=boundedPayload(input.payload,sanitize);return reply(200,{payload,sha256:digest(payload),stored:false,customRuleCount:redactionPaths.length});}
-      if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,maxAttemptsPerEvent:20,serverTime:now(),persistent:!!store,ingressEnabled:!!ingressKey});
+      if(req.method==='GET' && req.url==='/api/events') return reply(200,{events:[...events.values()].reverse(),allowlist,retentionHours:24,maxEvents:200,maxAttemptsPerEvent:20,serverTime:now(),persistent:!!store,ingressEnabled:!!(ingressKey||verifyStripe),stripeIngressEnabled:!!verifyStripe});
       if(req.method==='POST' && req.url==='/api/events') {
         if(events.size>=200) return reply(409,{error:'Inbox full; delete an event or wait for expiry'});
         if(!input.payload || typeof input.payload!=='object') return reply(400,{error:'JSON object or array payload required'});
@@ -171,7 +222,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
           attempt.outcome='sending';persist();
           Object.assign(attempt,await send(target,event.payload,{attemptId:attempt.id}),{outcome:'response_received'});
         } catch(error){attempt.error=String(error.message).slice(0,1024);attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';}
-        persist();return reply(200,attempt);
+        persist();operations.recordReplay(attempt);return reply(200,attempt);
       }
       reply(404,{error:'Not found'});
     } catch(error){if(!res.headersSent&&!res.destroyed)reply(storageHealthy?400:503,{error:storageHealthy?error.message:'Storage unavailable; operator intervention required'});}
@@ -188,8 +239,9 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const redactionPaths=readRedactionPaths(process.env.LAB_REDACTION_PATHS_FILE);
   const scopedCredentials=readScopedCredentials(process.env.LAB_SCOPED_TOKENS_FILE);
   const ingressKey=secret('LAB_INGRESS_KEY');
+  const stripeSecret=readStripeSecret(process.env);
   const store=process.env.LAB_DATA_PATH?createStore({path:process.env.LAB_DATA_PATH,key:secret('LAB_STORAGE_KEY')}):null;
-  const server=createLab({token,allowlist,store,ingressKey,redactionPaths,scopedCredentials});
+  const server=createLab({token,allowlist,store,ingressKey,redactionPaths,scopedCredentials,stripeSecret});
   server.requestTimeout=10000;server.headersTimeout=10000;
   const port=Number(process.env.PORT||4319),host=process.env.CONTAINER_MODE==='1'?'0.0.0.0':'127.0.0.1';
   for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>process.exit(0));setTimeout(()=>process.exit(1),10000).unref();});

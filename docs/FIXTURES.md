@@ -22,7 +22,7 @@ Outputs one JSON line with `ok`, count, digest and whether additional redaction 
 
 Start a private local server with an exact operator-confirmed HTTPS staging allowlist. Use a token file or protected environment variable; never place a token in command arguments, commit it, or print it in CI logs.
 
-Use the reviewed candidate checkout in both terminals. Node does not load `.env` automatically. If an instance already owns port 4319, stop it deliberately or use its existing matching configuration; do not start another over it. Provision a private token file (mode 600, random token of at least 32 characters) outside the repository using your normal secret-storage process. Both processes must read the same file.
+Use the reviewed candidate checkout in both terminals. Node does not load `.env` automatically. If an instance already owns port 4319, stop it deliberately or use its existing matching configuration; do not start another over it. Provision a private token file (mode 600, random token of at least 32 characters) outside the repository using your normal secret-storage process. Both processes must read the same file. Configure exactly one of `LAB_TOKEN` or `LAB_TOKEN_FILE`; unset the other, including empty inherited variables. Files must be owned by the process user, private (mode 0600), regular, non-linked and at most 4 KB. Local CLI API calls use an explicit direct-loopback agent and never follow redirects or inherit environment proxies.
 
 Terminal A, after replacing the example URL with your authorized staging endpoint:
 

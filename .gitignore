@@ -6,5 +6,6 @@ node_modules/
 .env
 .env.*
 data/
+release-artifacts/
 *.enc
 *.enc.lock

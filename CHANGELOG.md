@@ -4,6 +4,35 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
+### Saved-image identity follow-up
+
+- Verify saved-image archive graphs and distinguish Docker local index/manifest IDs from config digests; retain archive identity proof in private packets. Modern Docker-save exports can also contain OCI layout/index blobs. No registry publication or Release 1 approval is implied.
+- Enable image-file and image-config secret scanning in the existing immutable-image CI gate. Reject retained secret findings when preparing a packet; earlier vulnerability-only scans are not retroactively secret scans.
+- Keep release-tool CLI validation active when invoked through canonical-path aliases or symlinks; imports remain inert.
+
+### Exact-checkpoint CI and release preparation follow-up
+
+- Fresh CI execution explicitly checks out `9a088a4` in all six jobs, stamps source separately from workflow identity and passes 147 tests, container/security/lifecycle, browser, kind and a new full 30-minute workload; earlier `fae063f` results are not substituted.
+- Record separate read-only automated reviews of the application diff, immutable-source CI and release-packet tooling. Resolve four P2 tooling findings: reduced-workload acceptance, legitimate zero-match advisory scans, cross-run evidence substitution and PR branch-tip/merge identity handling.
+- Add private, bounded GitHub artifact collection with ZIP digest/per-file provenance and an unpublished release-packet builder; reject wrong source/run/workflow, unresolved findings, incomplete workloads and archive mismatches. No registry push, formal release, public endpoint or service purchase occurs.
+
+### Additional Release 1 engineering (verified candidate, unreleased)
+
+Source `fae063f` / runtime `e764835f4f8d` passed [all CI jobs](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43389359288): 147 tests on Node 22/24, five browser suites, Docker lifecycle/offline recovery, image advisory gates, disposable kind and a real 1,800-second native reference workload. Steady p95 3.084 ms; 0 HTTP 5xx; over-limit burst returned 51/150 HTTP 429; stopped-writer reopen matched 20 retained records. These are scoped synthetic measurements, not a Hostinger/container throughput SLA. See [exact engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md), including remaining human/receiver/Hostinger/publication gates.
+
+- Add offline stricter-redaction migration to a verified encrypted copy; reset labels and remove replay history from the copy while preserving source and deduplication metadata.
+- Prevent alert/fixture CLI bearer credentials from following opted-in environment proxies; use an explicit direct-loopback HTTP agent with bounded responses/deadlines. Harden fixture CLI secret-file loading and exclusive sources.
+- Add private loopback operational alert CLI and bounded signature-failure counters, with fixed actions and no external notifications.
+- Add session-only task onboarding for preview, capture, export, import and comparison; cover expiry, reset and responsive behavior.
+- Add process-crash/fsync and replay-commit fault tests. Fix replay returning a success after a transient failed pre-send storage commit; fail closed with 503 before further handling.
+- Verify Stripe retry dedup with fresh timestamp/signature and encrypted restart; document an authorized CLI local-listener path without implying public TLS acceptance.
+- Gate exact-image upgrade/rollback/restore against the pinned v0.2.1 application source on the current patched runtime.
+- Add a dedicated 30-minute CI workload with predeclared bounds, phase latency/status counts, CPU/RSS/disk samples and stopped-writer verification.
+
+- Add offline encryption-key rotation to a distinct destination, preserving and locking the original; validate and read back the encrypted copy before reporting success.
+- Reject existing destinations, wrong keys and writer locks; keep diagnostics free of secrets and paths. Document cutover, rollback and backup retention.
+- Reuse snapshot validation and include the shipped rotation CLI in runtime build identity. This does not complete Release 1 acceptance or establish Hostinger support.
+
 ### Self-host candidate engineering acceptance (not a formal release)
 
 - Add shared bounded private secret-file loading, a loaded-image Compose profile, hardened single-writer Kubernetes manifests and isolated cluster acceptance CI.

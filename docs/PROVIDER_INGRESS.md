@@ -35,6 +35,10 @@ Use the signing secret for the exact Stripe **test/sandbox endpoint**. Stripe CL
 5. Apply configured redaction before storage. Persist receipt deduplication with the correct provider/event identity and retention semantics. Receipt acceptance is not exactly-once processing or business success. Handle failed persistence without acknowledging success.
 6. Outbound replay remains the separate admin-confirmed staging workflow. Never forward original authentication headers or invent a Stripe signature for modified/redacted content. A provider-authenticated destination needs an explicit reviewed test adapter; this verifier alone does not make replay acceptable to Stripe-signature checks.
 
+## Local account-delivery path
+
+An authorized Stripe CLI sandbox listener can forward to loopback without a public HTTPS endpoint. Use its own listener secret, not a Dashboard secret; see the [controlled local procedure and current access status](STRIPE_LOCAL_TEST.md). This is separate from public TLS/isolation acceptance. The retry regression explicitly changes timestamp/signature for the same event ID/raw bytes and verifies one capture after encrypted restart.
+
 ## Limits and evidence
 
 - Buffer body: 1–65,536 bytes.

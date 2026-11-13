@@ -1,0 +1,9 @@
+{
+  "node": "24.22.3",
+  "sourceSha256": "f828e1488a638b970e88cc3e9993d34a8fb1fc02bd5e160b8ced2df99016d217",
+  "entries": 204,
+  "matchedMajorRanges": 47,
+  "coveredByPatchedRanges": 47,
+  "unresolved": [],
+  "unparsed": []
+}

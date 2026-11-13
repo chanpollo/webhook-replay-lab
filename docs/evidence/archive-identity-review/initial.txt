@@ -1,0 +1,9 @@
+พบช่องว่างในการตรวจ OCI layer/config และการผูก proof เข้ากับ packet แม้แยก Docker index ID ออกจาก config digest ได้ถูกแนวทาง ตรวจจาก source เท่านั้น ไม่ได้รันทดสอบหรือยืนยันพฤติกรรม Docker จริง และไม่ได้อ่าน release artifacts หรือเรียกบริการภายนอก
+
+Full review comments:
+
+- [P2] Verify OCI layer contents against config diff IDs — scripts/verify-image-archive.mjs:57-59
+  เส้นทาง OCI ตรวจ digest/size ของ layer blob และรายการ layer ใน manifest แต่ไม่ตรวจว่าเนื้อหา layer แบบไม่บีบอัดมี SHA-256 ตรงกับ `config.rootfs.diff_ids` ดังนั้น archive ที่ blob/descriptor/graph สอดคล้องกันทั้งหมด แต่ config อ้าง diff ID ผิด ยังผ่านได้หาก inspection ระบุค่าเดียวกัน แม้โหลดเป็น image ที่ถูกต้องไม่ได้ ควรตรวจ raw hash สำหรับ uncompressed layers และ bounded decompression สำหรับ compressed layers หรือปฏิเสธชนิดที่ไม่รองรับ พร้อมเพิ่ม negative test ที่แก้ layer และคำนวณ descriptor/ancestor digests ใหม่โดยคง diff ID เดิม; test ปัจจุบันทดสอบเพียง blob ที่ไม่ตรงชื่อ digest
+
+- [P2] Bind archive verification to the retained evidence snapshot — scripts/prepare-release-packet.mjs:57-57
+  หาก evidence ถูกเปลี่ยนระหว่างทำงาน subprocess จะอ่าน archive, build และ inspection จาก pathname ใหม่ ไม่ใช่ bytes ที่ parent ตรวจ provenance และเก็บไว้แล้ว จึงสามารถตรวจชุด B แล้วคืน archive กลับเป็นชุด A ก่อน copy ทำให้ checksum สุดท้ายผ่าน แต่ packet เก็บ proof ของ B คู่กับ archive/evidence ของ A ได้ ควรส่ง metadata snapshot ที่ตรวจแล้วให้ verifier และผูก hash ของ archive ที่ verifier อ่านจริงกับ `archiveHash` รวมทั้งตรวจ identity ที่คืนมาก่อนเก็บ proof; การตรวจ hash หลัง copy ปัจจุบันไม่ครอบคลุม bytes ที่ subprocess ตรวจ

@@ -1,0 +1,1 @@
+ไม่พบข้อบกพร่องที่ยืนยันได้จาก source/diff เทียบ HEAD 093ebf3: realpath-based detection รองรับ CLI ผ่าน symlink/path alias โดย imports ยังไม่เรียก CLI ตามปกติ ส่วน immutable workflow helper loading, private findings retention และ archive diffID/snapshot/platform checks ไม่ถูกเปลี่ยนแปลง ข้อจำกัด: ไม่ได้รัน tests หรือ simulation ตามคำสั่ง จึงยังไม่ยืนยันพฤติกรรม runtime จริง

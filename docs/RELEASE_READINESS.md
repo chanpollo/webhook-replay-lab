@@ -1,5 +1,7 @@
 # v1 readiness
 
+See the [2026-11-13 engineering checkpoint](R1_RECOVERY_CHECKPOINT.md) for newer migration/alerts/onboarding/fault work and exact validation. Historical evidence below applies to its named build, not automatically to this working tree.
+
 Checked 2026-11-12. **Core candidate technically validated; full v1 product acceptance remains open.** The source candidate can be reviewed independently of a formal release. No v1 tag or permanent live deployment is claimed; temporary owned-host acceptance and controlled external replay are documented separately.
 
 ## Product contract to preserve

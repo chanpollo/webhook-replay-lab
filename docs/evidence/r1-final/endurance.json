@@ -1,0 +1,371 @@
+{
+  "ok": true,
+  "reference": {
+    "runtime": {
+      "version": "0.3.0",
+      "build": "e764835f4f8d"
+    },
+    "sourceCommit": "fae063f4fc2a4d03223ee9c528125020662bf703",
+    "node": "24.22.2",
+    "platform": "linux",
+    "arch": "x64",
+    "cpuModel": "AMD EPYC 7763 64-Core Processor",
+    "cpuCount": 4,
+    "hostMemoryBytes": 16759439360,
+    "durationSeconds": 1800,
+    "latencyBudgetP95Ms": 250,
+    "limits": {
+      "events": 200,
+      "payloadBytes": 65536,
+      "requestsPerCredentialPerMinute": 120
+    },
+    "workload": "20 initial retained events. One request/second; 10-step mix: 2 captures, 2 deletes, 5 reads, 1 bad-signature rejection. 1 KB synthetic field. Final burst: 150 reads at concurrency 8. No outbound replay. CPU/RSS include local driver and service."
+  },
+  "elapsedSeconds": 1800.002667115,
+  "summary": {
+    "steady": {
+      "requests": 1796,
+      "statuses": {
+        "200": 1257,
+        "201": 359,
+        "401": 180
+      },
+      "http5xxRate": 0,
+      "throttledRate": 0,
+      "expectedAuthRejectionRate": 0.10022271714922049,
+      "p50Ms": 1.2185160000008182,
+      "p95Ms": 3.0837709999177605
+    },
+    "overLimit": {
+      "requests": 150,
+      "statuses": {
+        "200": 99,
+        "429": 51
+      },
+      "http5xxRate": 0,
+      "throttledRate": 0.34,
+      "expectedAuthRejectionRate": 0,
+      "p50Ms": 4.099567000055686,
+      "p95Ms": 8.612651000032201
+    }
+  },
+  "maxRssBytes": 108335104,
+  "maxSnapshotBytes": 24530,
+  "cpuMicroseconds": {
+    "user": 3209913,
+    "system": 501880
+  },
+  "samples": [
+    {
+      "elapsedSeconds": 0,
+      "rssBytes": 68100096,
+      "snapshotBytes": 24530
+    },
+    {
+      "elapsedSeconds": 29,
+      "rssBytes": 86228992,
+      "snapshotBytes": 23549
+    },
+    {
+      "elapsedSeconds": 59,
+      "rssBytes": 87670784,
+      "snapshotBytes": 23761
+    },
+    {
+      "elapsedSeconds": 89,
+      "rssBytes": 87801856,
+      "snapshotBytes": 23965
+    },
+    {
+      "elapsedSeconds": 119,
+      "rssBytes": 90705920,
+      "snapshotBytes": 24039
+    },
+    {
+      "elapsedSeconds": 149,
+      "rssBytes": 90968064,
+      "snapshotBytes": 24045
+    },
+    {
+      "elapsedSeconds": 179,
+      "rssBytes": 91361280,
+      "snapshotBytes": 24051
+    },
+    {
+      "elapsedSeconds": 209,
+      "rssBytes": 91754496,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 239,
+      "rssBytes": 92278784,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 269,
+      "rssBytes": 95948800,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 299,
+      "rssBytes": 96342016,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 329,
+      "rssBytes": 96866304,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 359,
+      "rssBytes": 97558528,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 389,
+      "rssBytes": 97558528,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 419,
+      "rssBytes": 97689600,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 449,
+      "rssBytes": 92426240,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 479,
+      "rssBytes": 92557312,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 509,
+      "rssBytes": 92819456,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 539,
+      "rssBytes": 94916608,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 569,
+      "rssBytes": 94015488,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 599,
+      "rssBytes": 94146560,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 629,
+      "rssBytes": 94408704,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 659,
+      "rssBytes": 94801920,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 689,
+      "rssBytes": 95195136,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 719,
+      "rssBytes": 95850496,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 749,
+      "rssBytes": 96243712,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 779,
+      "rssBytes": 96899072,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 809,
+      "rssBytes": 97161216,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 839,
+      "rssBytes": 97816576,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 869,
+      "rssBytes": 98209792,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 899,
+      "rssBytes": 98734080,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 929,
+      "rssBytes": 99258368,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 959,
+      "rssBytes": 99651584,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 989,
+      "rssBytes": 100175872,
+      "snapshotBytes": 24055
+    },
+    {
+      "elapsedSeconds": 1019,
+      "rssBytes": 100831232,
+      "snapshotBytes": 24059
+    },
+    {
+      "elapsedSeconds": 1049,
+      "rssBytes": 100831232,
+      "snapshotBytes": 24065
+    },
+    {
+      "elapsedSeconds": 1079,
+      "rssBytes": 100831232,
+      "snapshotBytes": 24071
+    },
+    {
+      "elapsedSeconds": 1109,
+      "rssBytes": 100831232,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1139,
+      "rssBytes": 100962304,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1169,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1199,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1229,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1259,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1289,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1319,
+      "rssBytes": 101093376,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1349,
+      "rssBytes": 101224448,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1379,
+      "rssBytes": 101224448,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1409,
+      "rssBytes": 101224448,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1439,
+      "rssBytes": 101224448,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1468,
+      "rssBytes": 101224448,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1498,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1528,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1558,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1588,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1618,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1648,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1678,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1708,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1738,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1768,
+      "rssBytes": 101355520,
+      "snapshotBytes": 24075
+    },
+    {
+      "elapsedSeconds": 1800,
+      "rssBytes": 108335104,
+      "snapshotBytes": 24075
+    }
+  ],
+  "retainedEvents": 20,
+  "files": 1,
+  "limitations": [
+    "Synthetic single-process service and driver; not a customer SLA, replay-network benchmark or DDoS test.",
+    "Short runs validate the harness only; full acceptance requires durationSeconds=1800."
+  ]
+}

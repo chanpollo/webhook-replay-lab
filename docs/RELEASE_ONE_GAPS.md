@@ -1,5 +1,7 @@
 # Release 1 customer-readiness review
 
+Current engineering checkpoint: [recovery, migration, alerts, onboarding and fault/capacity work](R1_RECOVERY_CHECKPOINT.md). The dated assessment below is historical; the [roadmap](ROADMAP.md) remains the full launch contract.
+
 Reviewed against PLAN.md, PRODUCT.md, README and HOSTINGER.md on 2026-11-12. A successful replay is a technical milestone, not a substitute for the original adoption and Hostinger goals. No roadmap criterion is waived here.
 
 ## Verified foundation
@@ -14,7 +16,7 @@ Candidate `c144300` / runtime `98aadcff4fdf`: 92 local tests, Node 22/24 CI, har
 | Receive real provider webhooks | Generic signed ingress exists, disabled by default in VPS profile; example proxy untested | Independently review and test public-route isolation, abuse/rate limits, clock/replay defenses and provider signature adapters; do not expose admin endpoints |
 | Safely share within a team | Single administrator token and one local inbox | Capture/read roles and restart-based rotation now implemented for one inbox; richer team access model still requires design; no SSO/tenant claims |
 | Control redaction | Key heuristics plus conservative text scrubbing | Restricted JSONPath rules and real preview now implemented with adversarial tests; full JSONPath is intentionally unsupported and free-text limitations remain |
-| Operate over time | Fixed retention/limits, encrypted storage, manual recovery | Operational alerts/metrics, documented support/patch owner, capacity/abuse measurements and recovery exercises; encryption-key migration is not implemented |
+| Operate over time | Fixed retention/limits, encrypted storage, manual recovery | Operational alerts/metrics, documented support/patch owner, capacity/abuse measurements and recovery exercises; offline key rotation is now implemented; actual operator/platform cutover acceptance remains open |
 | Trust usability and market fit | Automated browser checks, real charts/history, hypothesis and competitor references | Independent human task walkthrough, visual acceptance, and comparative workflow measurement; no parity/speed claims without evidence |
 | Install from Hostinger catalog and receive referral revenue | Public MIT repository and VPS-compatible profile | Actual program review, approved deployment/referral link/code and applicable agreement; no catalog acceptance or earnings guarantee |
 

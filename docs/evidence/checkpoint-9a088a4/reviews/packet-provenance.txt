@@ -1,0 +1,6 @@
+Source inspection confirms both previous fixes: reduced workloads now fail request-count/mix checks, and zero matching vulnerable ranges are accepted. A remaining provenance gap permits successful CI evidence for a different tested source; no publication operations were found. Tests were inspected, not executed, to preserve read-only scope.
+
+Review comment:
+
+- [P2] Bind CI success to the tested source and expected workflow — scripts/prepare-release-packet.mjs:31-31
+  For workflow-dispatch runs, `ci.headSha` identifies the workflow commit, not the requested `source_sha`. Consequently, image/endurance evidence for source A can be combined with a successful run testing source B at the same workflow commit, and this validator accepts the packet even if A's Kubernetes or browser jobs failed. Checking job names and a repository-scoped run URL also does not establish that `.github/workflows/ci.yml` ran. Require retained provenance binding the artifacts and requested source to that specific run and workflow before treating its success as acceptance evidence.

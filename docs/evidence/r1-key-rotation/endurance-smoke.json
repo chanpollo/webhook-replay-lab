@@ -1,0 +1,64 @@
+{
+  "ok": true,
+  "reference": {
+    "node": "24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuModel": "Apple M4",
+    "cpuCount": 10,
+    "hostMemoryBytes": 17179869184,
+    "durationSeconds": 10,
+    "latencyBudgetP95Ms": 250,
+    "limits": {
+      "events": 200,
+      "payloadBytes": 65536,
+      "requestsPerCredentialPerMinute": 120
+    },
+    "workload": "20 initial retained events. One request/second; 10-step mix: 2 captures, 2 deletes, 5 reads, 1 bad-signature rejection. 1 KB synthetic field. Final burst: 150 reads at concurrency 8. No outbound replay. CPU/RSS include local driver and service."
+  },
+  "elapsedSeconds": 10.015759292,
+  "summary": {
+    "steady": {
+      "requests": 5,
+      "statuses": {
+        "200": 4,
+        "201": 1
+      },
+      "p50Ms": 3.2453330000000733,
+      "p95Ms": 119.81037500000002
+    },
+    "overLimit": {
+      "requests": 150,
+      "statuses": {
+        "200": 115,
+        "429": 35
+      },
+      "p50Ms": 6.468957999999475,
+      "p95Ms": 16.498375000000124
+    }
+  },
+  "maxRssBytes": 76054528,
+  "maxSnapshotBytes": 24530,
+  "cpuMicroseconds": {
+    "user": 298388,
+    "system": 55631
+  },
+  "samples": [
+    {
+      "elapsedSeconds": 0,
+      "rssBytes": 67764224,
+      "snapshotBytes": 24530
+    },
+    {
+      "elapsedSeconds": 10,
+      "rssBytes": 76054528,
+      "snapshotBytes": 23370
+    }
+  ],
+  "retainedEvents": 20,
+  "files": 1,
+  "limitations": [
+    "Synthetic single-process service and driver; not a customer SLA, replay-network benchmark or DDoS test.",
+    "Short runs validate the harness only; full acceptance requires durationSeconds=1800."
+  ]
+}

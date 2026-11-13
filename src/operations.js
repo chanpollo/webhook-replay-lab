@@ -8,6 +8,7 @@ export function createOperationalMetrics({now=Date.now}={}) {
  const startedAt=now();
  const requests={started:0,completed:0,aborted:0,inFlight:0,statusClasses:{'1xx':0,'2xx':0,'3xx':0,'4xx':0,'5xx':0,other:0}};
  const replays=emptyOutcomes();
+ let signatureFailures=0;
  const increment=(obj,key)=>{obj[key]=bounded(obj[key]+1);};
  return Object.freeze({
   observeResponse(res){
@@ -17,11 +18,12 @@ export function createOperationalMetrics({now=Date.now}={}) {
    res.once('finish',finish);res.once('close',close);
   },
   recordReplay(attempt){increment(replays,outcomeKey(attempt||{}));},
+  recordSignatureFailure(){signatureFailures=bounded(signatureFailures+1);},
   snapshot({events=[],pendingApprovals=0,receipts=0,persistent=false,ingressEnabled=false,storageHealthy=true}={}){
    const retained={events:0,attempts:0,outcomes:emptyOutcomes(),pendingApprovals:bounded(pendingApprovals),ingressReceipts:bounded(receipts)};
    // The store enforces these bounds; also bound diagnostic traversal defensively.
    for(const event of events){if(retained.events>=200)break;retained.events++;for(const attempt of (Array.isArray(event.attempts)?event.attempts:[]).slice(-20)){retained.attempts++;increment(retained.outcomes,outcomeKey(attempt||{}));}}
-   return {schemaVersion:1,uptimeSeconds:bounded((now()-startedAt)/1000),storage:{mode:persistent?'encrypted':'memory',healthy:!!storageHealthy},ingressEnabled:!!ingressEnabled,limits:{maxEvents:200,maxAttemptsPerEvent:20,retentionHours:24,maxPendingApprovals:100,maxIngressReceipts:2000},retained,process:{requests:{...requests,statusClasses:{...requests.statusClasses}},replayOutcomes:{...replays}}};
+   return {schemaVersion:1,uptimeSeconds:bounded((now()-startedAt)/1000),storage:{mode:persistent?'encrypted':'memory',healthy:!!storageHealthy},ingressEnabled:!!ingressEnabled,limits:{maxEvents:200,maxAttemptsPerEvent:20,retentionHours:24,maxPendingApprovals:100,maxIngressReceipts:2000},retained,process:{requests:{...requests,statusClasses:{...requests.statusClasses}},signatureFailures,replayOutcomes:{...replays}}};
   }
  });
 }

@@ -1,0 +1,17 @@
+✔ Stripe route disabled by default and requires persistent store (50.350542ms)
+✔ Stripe authenticates before parsing, rejects live/invalidschema and accepts sanitized test event (51.667334ms)
+✔ Stripe dedup/conflict persists and generic ID namespace cannot suppress Stripe event (17.180042ms)
+✔ duplicate physical Stripe headers rejected even if combined value contains valid signature (6.706125ms)
+✔ Stripe retry re-signs the same event/body with fresh time without duplicate capture, including encrypted restart (50.623125ms)
+✔ Stripe shared signed budget remains bounded; failures cannot acknowledge persistence (124.884916ms)
+✔ Stripe captures persist only sanitized content in actual encrypted store (33.403916ms)
+✔ cross-provider receipt probes never become a successful duplicate, including after rollback metadata loss (17.332208ms)
+✔ Stripe-only service reports enabled ingress without leaking its secret (8.9415ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 550.515084

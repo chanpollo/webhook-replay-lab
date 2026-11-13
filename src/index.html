@@ -20,6 +20,22 @@
     <button id="connect">Connect <span aria-hidden="true">→</span></button>
     <span id="status" role="status" aria-live="polite">Locked</span>
   </section>
+  <details class="panel first-run" open>
+    <summary>First capture to portable fixture</summary>
+    <div class="panel-body">
+      <p>Use the synthetic sample first. Capture and import store records locally; replay requires a separate review and confirmation.</p>
+      <button id="startGuide" class="secondary">Open capture workbench</button>
+      <ol aria-label="Current session walkthrough">
+        <li id="guide-preview">Preview redaction and review free text before capture.</li>
+        <li id="guide-capture">Capture the synthetic sample, then inspect its sanitized payload.</li>
+        <li id="guide-export">Export the selected event as a portable fixture; review the downloaded file.</li>
+        <li id="guide-import">Import that fixture using Validate &amp; preview, then Import event.</li>
+        <li id="guide-compare">Select another captured event and compare their payloads.</li>
+      </ol>
+      <p id="guideProgress" role="status">0 of 5 session actions completed. Progress resets when the token changes or the page reloads.</p>
+      <p class="hint">For replay, ask the operator to configure an owned staging destination. Review its URL and payload hash, then type SEND TO STAGING. Cancel or wait 60 seconds to invalidate confirmation. HTTP 2xx confirms a response, not business success. If delivery is unknown, check receiver logs with the attempt ID before another send.</p>
+    </div>
+  </details>
   <nav class="view-nav" aria-label="Workspace views" role="tablist"><button id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</button><button id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v6l4 2"/></svg>Replay history</button><button id="tab-workbench" role="tab" aria-selected="false" aria-controls="view-workbench" tabindex="-1"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg>Workbench</button></nav>
   <div id="view-overview" role="tabpanel" tabindex="0" aria-labelledby="tab-overview">
   <section class="panel overview" aria-labelledby="overview-title">

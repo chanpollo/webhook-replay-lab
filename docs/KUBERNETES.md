@@ -1,6 +1,8 @@
-# Kubernetes self-hosting package
+# Kubernetes self-hosting
 
-This repository includes executable Kubernetes resources, an immutable-image renderer, static/behavioral checks and a disposable kind acceptance harness. No real cluster was changed during implementation. Actual disposable-kind acceptance passed for source `083ceed` / runtime `58f35f208f9b`; see [exact evidence](SELF_HOST_ACCEPTANCE.md). This does not establish acceptance on your actual CNI/CSI or production cluster.
+Latest follow-up acceptance: [source fae063f / build e764835f4f8d](R1_ENGINEERING_ACCEPTANCE.md). The checksummed image was scanned and loaded into disposable kind 1.37; actual customer CNI/CSI and host-specific recovery remain separate gates.
+
+This repository includes executable Kubernetes resources, an immutable-image renderer, static/behavioral checks and a disposable kind acceptance harness. No existing/customer cluster was changed during implementation. Actual disposable-kind acceptance passed for source `fae063f` / runtime `e764835f4f8d`; see [exact evidence](R1_ENGINEERING_ACCEPTANCE.md). This does not establish acceptance on your actual CNI/CSI or production cluster.
 
 ## Defaults and contract
 
@@ -17,7 +19,7 @@ The PVC mount may be kubelet/root/group-owned. A non-root init container creates
 
 The externally created Secret `hook-required-secrets` must contain `admin-token` and `storage-key`. There are no secret values in these manifests. The init reads only those fixed kubelet-projected files with bounded reads and validates them. It copies them into a memory-backed `emptyDir` as UID 1000 mode 0600 regular files. The application never mounts the original projected Secret volume. This avoids passing kubelet symlinks/root-owned files to strict secret-file loaders. An identical completed copy is accepted on init retry; a conflicting, partial or unsafe existing copy fails closed. Recreate the failed pod after correcting its input rather than weakening file checks.
 
-Secrets are snapshots at pod creation, not hot-reloaded. Token rotation requires a controlled single-writer restart. **Do not change the storage key for existing data**: encrypted key migration is not implemented. Retain the matching key separately from an offline backup. PVC retention and backup availability remain operator responsibilities. Never delete the PVC as an upgrade step or remove a lock while a writer may be alive.
+Secrets are snapshots at pod creation, not hot-reloaded. Token rotation requires a controlled single-writer restart. **Do not change the storage key in place**. The candidate [offline copy command](STORAGE_KEY_ROTATION.md) supports a separate verified file; scale to zero and verify all writers have stopped before any migration. Test the actual CSI and one-writer cutover before adoption. Retain the matching key separately from an offline backup. PVC retention and backup availability remain operator responsibilities. Never delete the PVC as an upgrade step or remove a lock while a writer may be alive.
 
 ## Render and install on an authorized cluster
 

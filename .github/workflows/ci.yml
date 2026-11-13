@@ -2,8 +2,16 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full immutable source commit to test (blank uses workflow commit)
+        required: false
+        type: string
 permissions:
   contents: read
+env:
+  HOOK_REQUESTED_SOURCE: ${{ inputs.source_sha || github.sha }}
 jobs:
   node:
     runs-on: ubuntu-latest
@@ -13,6 +21,16 @@ jobs:
         node: [22, 24]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ matrix.node }}
@@ -25,6 +43,16 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - run: LAB_TOKEN=synthetic-ci-validation-token-00000000 docker compose config --quiet
       - name: Validate verified-image Compose profile
         run: LAB_IMAGE=webhook-replay-lab:synthetic-validation LAB_TOKEN=synthetic-ci-validation-token-00000000 LAB_STORAGE_KEY=$(printf 'ab%.0s' {1..32}) docker compose -f compose.image.yaml config --quiet
@@ -69,15 +97,37 @@ jobs:
       - name: Check isolated ingress reverse proxy
         run: LAB_TEST_IMAGE=webhook-replay-lab:test npm run test:proxy
 
+      - name: Check offline migration, rotation, alerts and rollback in exact image
+        run: LAB_TEST_IMAGE=webhook-replay-lab:test node test/offline-container.mjs
+
+      - name: Check pinned stable-source upgrade, rollback and isolated restore
+        shell: bash
+        run: |
+          git fetch --depth=1 origin tag v0.2.1
+          test "$(git rev-parse v0.2.1^{commit})" = "8f803f01a14b378edd27653bd5f900b19ff099f2"
+          docker tag webhook-replay-lab:test webhook-replay-lab:release-candidate
+          node test/lifecycle-smoke.mjs
+
       - name: Scan immutable final image and Node advisories
         shell: bash
         run: |
           set -euo pipefail
+          umask 077
           mkdir -p security-evidence
           image_id=$(docker image inspect webhook-replay-lab:test --format '{{.Id}}')
           printf '%s\n' "$image_id" > security-evidence/image-id.txt
-          docker image inspect "$image_id" > security-evidence/image-inspect.json
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb image --image-src docker --scanners vuln --exit-code 1 --format json "$image_id" > security-evidence/trivy.json
+          docker image inspect "$image_id" > "$RUNNER_TEMP/hook-image-inspect-private.json"
+          scan_status=0
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb image --image-src docker --scanners vuln,secret --image-config-scanners secret --exit-code 1 --format json "$image_id" > "$RUNNER_TEMP/hook-image-scan-private.json" || scan_status=$?
+          # Security retention policy belongs to the workflow revision, including
+          # manual runs whose tested source predates this standalone helper.
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          if ! git cat-file -e "$GITHUB_SHA:scripts/retain-image-security.mjs"; then
+            git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          fi
+          git show "$GITHUB_SHA:scripts/retain-image-security.mjs" > "$RUNNER_TEMP/hook-retain-image-security.mjs"
+          node "$RUNNER_TEMP/hook-retain-image-security.mjs" "$RUNNER_TEMP/hook-image-scan-private.json" "$RUNNER_TEMP/hook-image-inspect-private.json" security-evidence
+          test "$scan_status" = 0
           node_version=$(docker run --rm --network none "$image_id" node -p 'process.versions.node')
           curl --fail --silent --show-error --max-time 30 https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json -o security-evidence/node-core-feed.json
           SEMVER_MODULE="$(npm root -g)/npm/node_modules/semver" node scripts/check-node-advisories.cjs "$node_version" security-evidence/node-core-feed.json > security-evidence/node-core-result.json
@@ -87,14 +137,15 @@ jobs:
           set -euo pipefail
           mkdir -p image-artifact
           version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
-          tag="webhook-replay-lab:${version}-${GITHUB_SHA:0:12}-amd64"
+          source_sha=$(git rev-parse HEAD)
+          tag="webhook-replay-lab:${version}-${source_sha:0:12}-amd64"
           image_id=$(cat security-evidence/image-id.txt)
           docker tag "$image_id" "$tag"
           docker image save "$tag" | gzip -n > image-artifact/webhook-replay-lab-linux-amd64.tar.gz
           (cd image-artifact && sha256sum webhook-replay-lab-linux-amd64.tar.gz > SHA256SUMS)
           gzip -dc image-artifact/webhook-replay-lab-linux-amd64.tar.gz | docker image load
           test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$image_id"
-          IMAGE_ID="$image_id" IMAGE_TAG="$tag" node --input-type=module -e 'import fs from "node:fs";import {readBuildInfo} from "./src/build-info.js";fs.writeFileSync("image-artifact/build.json",JSON.stringify({...readBuildInfo(),commit:process.env.GITHUB_SHA,imageId:process.env.IMAGE_ID,tag:process.env.IMAGE_TAG,platform:"linux/amd64",archiveFormat:"docker-save+gzip",publishedRegistry:false},null,2)+"\n")'
+          TESTED_SOURCE_SHA="$source_sha" IMAGE_ID="$image_id" IMAGE_TAG="$tag" node --input-type=module -e 'import fs from "node:fs";import {readBuildInfo} from "./src/build-info.js";fs.writeFileSync("image-artifact/build.json",JSON.stringify({...readBuildInfo(),commit:process.env.TESTED_SOURCE_SHA,workflowCommit:process.env.GITHUB_SHA,imageId:process.env.IMAGE_ID,tag:process.env.IMAGE_TAG,platform:"linux/amd64",archiveFormat:"docker-save+gzip",publishedRegistry:false},null,2)+"\n")'
       - name: Retain verified candidate image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -117,6 +168,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: verified-image-linux-amd64
@@ -142,3 +203,77 @@ jobs:
           expected=$(node -p 'JSON.parse(require("fs").readFileSync("image-artifact/build.json","utf8")).imageId')
           test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$expected"
           LAB_TEST_IMAGE="$tag" KIND_NODE_IMAGE=kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 node test/kubernetes-kind.mjs
+
+  endurance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Run dedicated 30-minute synthetic loopback workload
+        shell: bash
+        env:
+          LAB_ENDURANCE_SECONDS: 1800
+          LAB_ENDURANCE_OUTPUT: endurance.json
+        run: GITHUB_SHA="$(git rev-parse HEAD)" node test/endurance.mjs | tee endurance.log
+      - name: Retain capacity reference and measurements
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: synthetic-endurance-evidence
+          path: |
+            endurance.json
+            endurance.log
+          retention-days: 14
+          if-no-files-found: warn
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ env.HOOK_REQUESTED_SOURCE }}
+      - name: Verify immutable checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$HOOK_REQUESTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          actual_source=$(git rev-parse HEAD)
+          test "$actual_source" = "$HOOK_REQUESTED_SOURCE"
+          printf 'Tested source: %s; workflow source: %s\n' "$actual_source" "$GITHUB_SHA"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Install locked test-only browser tooling
+        run: |
+          npm ci --prefix test/browser --ignore-scripts --no-audit --no-fund
+          node test/browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Run synthetic private browser acceptance
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/test/browser/node_modules/playwright/index.mjs
+        run: |
+          node test/ui-smoke.mjs
+          node test/fixture-ui-smoke.mjs
+          node test/redaction-ui-smoke.mjs
+          node test/onboarding-ui-smoke.mjs
+          node test/dashboard-smoke.mjs
+      - name: Retain synthetic browser screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: synthetic-browser-screenshots
+          path: docs/*preview.png
+          retention-days: 14

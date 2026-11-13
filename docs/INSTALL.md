@@ -2,6 +2,8 @@
 
 Choose the route that matches your machine. Hook has no runtime npm dependencies, so **`npm install` is not required**. Keep the admin interface on your own computer or behind SSH forwarding, never on a public website.
 
+Current verified follow-up: [offline migrations, private alerts, task onboarding and final CI acceptance](R1_ENGINEERING_ACCEPTANCE.md). These features are on the isolated candidate branch until reviewed/merged; use its exact tested commit rather than assuming main contains them.
+
 ## 1. Choose a version
 
 - **Stable:** `v0.2.1`, the latest published release identified by this project. Its features differ from the candidate.
@@ -21,7 +23,7 @@ Use Git from its official distribution and a supported Node.js release from [nod
 | macOS, Docker Desktop | Earlier candidate container tests passed; latest runtime's container acceptance is from Linux CI/owned host, not a fresh macOS Docker test | Use Linux container volume; verify your selected version locally |
 | Windows, native Node / PowerShell | **Not tested.** Memory-only instructions below are a trial path, not a supported-platform assurance | Native encrypted storage has POSIX permission/ownership checks; **do not assume Windows persistence is supported** |
 | Windows, Docker Desktop with WSL2/Linux containers | **Not tested.** A possible Linux-container route, not Windows acceptance evidence | Verify mounts, secret permissions, loopback isolation and recovery before relying on it |
-| Kubernetes | Disposable kind 1.37 acceptance passed for source `083ceed`: private port-forward/auth, UID/secret modes and encrypted PVC restart. This is not acceptance on every production CNI/CSI | Dedicated compatible PVC; test permissions, replacement, backup and restore on the actual CSI driver |
+| Kubernetes | Disposable kind 1.37 acceptance passed for source `fae063f`: private port-forward/auth, UID/secret modes and encrypted PVC restart. This is not acceptance on every production CNI/CSI | Dedicated compatible PVC; test permissions, replacement, backup and restore on the actual CSI driver |
 | Hostinger VPS | Docker profile is compatible in design and has passed owned-host sandbox tests; **no actual Hostinger install or program approval** | Requires an authorized VPS and host-specific acceptance |
 | PHP/shared hosting, generic static hosting | Not a supported runtime for this Node/Docker service | Not applicable |
 
@@ -132,10 +134,10 @@ For backups, supported rollback boundaries, interrupted replay and retention, us
 
 Docker/Compose, Kubernetes and compatible Hostinger VPS installs are intended to consume the same reviewed OCI image, pinned by release tag **and digest**. No registry image is asserted to be published yet. Before registry publication, use the existing source-build route or the verified CI archive with `compose.image.yaml`, not an invented `docker pull` address. See [CONTAINER_IMAGE.md](CONTAINER_IMAGE.md) for artifact identity and promotion gates.
 
-Kubernetes packaging passed disposable kind 1.37 acceptance for source `083ceed`, including private port-forward/authentication, UID/Secret-file permissions and encrypted PVC retention after a graceful Recreate restart. See [exact acceptance evidence](SELF_HOST_ACCEPTANCE.md) and [Kubernetes installation guidance](KUBERNETES.md). This does not establish customer-cluster CNI enforcement, CSI compatibility, backup/restore or production readiness. Verify those separately on an explicitly authorized target; do not apply manifests to an existing cluster merely to try them.
+Kubernetes packaging passed disposable kind 1.37 acceptance for source `fae063f`, including private port-forward/authentication, UID/Secret-file permissions and encrypted PVC retention after a graceful Recreate restart. See [exact acceptance evidence](R1_ENGINEERING_ACCEPTANCE.md) and [Kubernetes installation guidance](KUBERNETES.md). This does not establish customer-cluster CNI enforcement, CSI compatibility, backup/restore or production readiness. Verify those separately on an explicitly authorized target; do not apply manifests to an existing cluster merely to try them.
 
 The CI workflow is configured to retain a verified Linux amd64 Docker-save archive for 14 days, after the final-image security gate. Use only a successful exact-commit run; see [download and identity verification](CONTAINER_IMAGE.md#candidate-ci-download-not-a-registry-release). The archive alone is not evidence of Kubernetes acceptance: use the exact-commit Kubernetes CI result and its stated limits. It is not a public registry release and does not establish arm64 support, customer-cluster acceptance or an actual Hostinger deployment.
 
 For an already verified, locally loaded image, use [`compose.image.yaml`](../compose.image.yaml) rather than the source-build profile. Follow the [image Compose commands](CONTAINER_IMAGE.md#run-the-verified-local-image-with-compose): required `LAB_IMAGE`, no implicit build/pull, private credentials, and the same explicit Compose project name for persistent lifecycle operations. Do not switch an existing store without stopping its writer and taking an offline backup.
 
-Latest self-host image and disposable Kubernetes acceptance: [source 083ceed evidence](SELF_HOST_ACCEPTANCE.md). This adds CI runtime evidence, not Windows, actual Hostinger or customer-cluster acceptance.
+Latest self-host image and disposable Kubernetes acceptance: [source fae063f evidence](R1_ENGINEERING_ACCEPTANCE.md). This adds CI runtime evidence, not Windows, actual Hostinger or customer-cluster acceptance.

@@ -1,0 +1,10 @@
+{
+  "version": "0.3.0",
+  "build": "e764835f4f8d",
+  "commit": "fae063f4fc2a4d03223ee9c528125020662bf703",
+  "imageId": "sha256:12c6d94873bbbd00c6aeb9ce0ac5d659962a6bc375a532cff3f35c795511291d",
+  "tag": "webhook-replay-lab:0.3.0-fae063f4fc2a-amd64",
+  "platform": "linux/amd64",
+  "archiveFormat": "docker-save+gzip",
+  "publishedRegistry": false
+}

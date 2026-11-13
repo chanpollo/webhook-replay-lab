@@ -21,7 +21,7 @@ Public exposure, provider credentials, hosting purchases, program agreements and
 
 ## Current work after the verified baseline
 
-Operational diagnostics/metrics, ingress hardening and the Stripe test-mode adapter are **in progress and not yet covered by the baseline acceptance above**. Keep their source/test/CI and controlled-provider evidence separate until each is verified. Do not label a newly added route or adapter supported solely because it appears in the working tree. The generic HMAC receiver and private default remain distinct from any newly tested public receiver profile.
+Operational diagnostics, ingress hardening and the Stripe test-mode adapter passed source `083ceed` unit/API and isolated proxy CI, separately from the earlier baseline above. Actual Stripe account delivery and public TLS acceptance for this runtime remain unverified. The generic HMAC receiver and private default remain distinct from any newly tested public receiver profile.
 
 ## Release 1 milestones
 
@@ -80,7 +80,7 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 ### R1.5 — Customer installation and Hostinger distribution
 
-**Self-host delivery target:** one OCI image with supported Docker/Compose, Kubernetes and compatible Hostinger VPS deployment routes. Kubernetes packaging is planned/in progress, **not verified in a cluster**. Publish only an approved registry/release artifact, with version tag, immutable digest, source revision/build identity and retained scan evidence. Do not use `latest` as the only identity or embed installation credentials.
+**Self-host delivery target:** one OCI image with supported Docker/Compose, Kubernetes and compatible Hostinger VPS deployment routes. Kubernetes packaging passed actual disposable kind 1.37 acceptance for source `083ceed`; actual customer CNI/CSI, backup/restore and operational acceptance remain open. Publish only an approved registry/release artifact, with version tag, immutable digest, source revision/build identity and retained scan evidence. Do not use `latest` as the only identity or embed installation credentials.
 
 **Per-route acceptance:** install from empty state, synthetic capture, graceful stop/restart, one-writer upgrade/rollback, secret permissions, private admin/optional receiver isolation, and isolated backup restore. For Kubernetes additionally verify actual CSI/Secret behavior, no overlapping writer during replacement, resource/probe behavior and network controls. A manifest lint or local Docker success is not Kubernetes acceptance. Image platform support must match tested architectures; no multi-architecture claim from a single-platform build.
 

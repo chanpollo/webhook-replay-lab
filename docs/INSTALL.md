@@ -21,7 +21,7 @@ Use Git from its official distribution and a supported Node.js release from [nod
 | macOS, Docker Desktop | Earlier candidate container tests passed; latest runtime's container acceptance is from Linux CI/owned host, not a fresh macOS Docker test | Use Linux container volume; verify your selected version locally |
 | Windows, native Node / PowerShell | **Not tested.** Memory-only instructions below are a trial path, not a supported-platform assurance | Native encrypted storage has POSIX permission/ownership checks; **do not assume Windows persistence is supported** |
 | Windows, Docker Desktop with WSL2/Linux containers | **Not tested.** A possible Linux-container route, not Windows acceptance evidence | Verify mounts, secret permissions, loopback isolation and recovery before relying on it |
-| Kubernetes | **Planned / implementation in progress, not cluster-tested.** Use one writer, private admin and a pinned image digest; do not infer support from manifests existing | Dedicated compatible PVC; test permissions, replacement, backup and restore on the actual CSI driver |
+| Kubernetes | Disposable kind 1.37 acceptance passed for source `083ceed`: private port-forward/auth, UID/secret modes and encrypted PVC restart. This is not acceptance on every production CNI/CSI | Dedicated compatible PVC; test permissions, replacement, backup and restore on the actual CSI driver |
 | Hostinger VPS | Docker profile is compatible in design and has passed owned-host sandbox tests; **no actual Hostinger install or program approval** | Requires an authorized VPS and host-specific acceptance |
 | PHP/shared hosting, generic static hosting | Not a supported runtime for this Node/Docker service | Not applicable |
 

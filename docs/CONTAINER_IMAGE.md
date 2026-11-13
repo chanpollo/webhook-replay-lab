@@ -1,6 +1,6 @@
 # OCI image delivery strategy
 
-Status: design and release requirements, not a registry publication announcement. Docker/Compose source builds exist. Kubernetes packaging is in progress and not cluster-verified. Public registry publication remains subject to the release approval boundary.
+Status: the Linux amd64 artifact and disposable Kubernetes acceptance passed for source `083ceed`; see [exact evidence](SELF_HOST_ACCEPTANCE.md). This is not a registry publication announcement. Public registry publication remains subject to the release approval boundary.
 
 ## One artifact, several install targets
 
@@ -10,7 +10,7 @@ Current Dockerfile strengths: digest-pinned Node 24 Alpine base, explicit patche
 
 ## Candidate CI download (not a registry release)
 
-The current workflow is configured to export the **same image ID after the existing final-image security gate**, as artifact `verified-image-linux-amd64` retained for 14 days. This documents the configured pipeline; confirm a successful run on the exact commit before claiming an artifact exists. The local tag is `webhook-replay-lab:VERSION-COMMIT12-amd64`.
+The current workflow is configured to export the **same image ID after the existing final-image security gate**, as artifact `verified-image-linux-amd64` retained for 14 days. Artifact ID `14003148484` exists for successful run `43350428884`; later commits require their own successful workflow. The local tag is `webhook-replay-lab:VERSION-COMMIT12-amd64`.
 
 The artifact contains `webhook-replay-lab-linux-amd64.tar.gz`, `SHA256SUMS` and `build.json` (version/build, full commit, image ID, tag, platform, `archiveFormat: docker-save+gzip`, `publishedRegistry: false`). This is a compressed Docker-save archive, **not an OCI-layout archive, published registry manifest or formal release**. No arm64 support is asserted. A checksum downloaded with the artifact establishes consistency, not independent publisher authenticity; obtain it from the trusted repository's exact CI run and inspect the run's provenance.
 

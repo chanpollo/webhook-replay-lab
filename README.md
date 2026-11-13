@@ -8,7 +8,7 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 - [Install and platform support](docs/INSTALL.md)
 - [Verified image artifacts](docs/CONTAINER_IMAGE.md) and [Kubernetes self-hosting](docs/KUBERNETES.md)
-- [Release 1 roadmap](docs/ROADMAP.md)
+- [Release 1 roadmap](docs/ROADMAP.md) and [latest engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md)
 - [Fixtures and explicit replay CLI](docs/FIXTURES.md)
 - [Redaction rules](docs/REDACTION.md) and [offline migration](docs/REDACTION_MIGRATION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
 - [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md), [local alerts](docs/ALERTS.md) and [capacity/fault contract](docs/CAPACITY_REFERENCE.md)
@@ -17,7 +17,9 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 ### Verified candidate evidence
 
-**Newest self-host candidate:** source `083ceed`, runtime `58f35f208f9b`, passed 129 tests, Docker/proxy/security and real disposable Kubernetes acceptance. A checksummed Linux amd64 image artifact is available from [CI run 43350428884](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43350428884). See [exact self-host evidence and limits](docs/SELF_HOST_ACCEPTANCE.md). This is not a registry publication or v1 release.
+**Recovery/operations follow-up (isolated branch, unreleased):** source `fae063f`, build `e764835f4f8d`, passed 147 tests on Node 22/24, five browser suites, Docker install/upgrade/rollback/restore, image/security, disposable kind and a full 30-minute native reference workload. [Exact evidence, measurements and remaining gates](docs/R1_ENGINEERING_ACCEPTANCE.md); [CI run 43389359288](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43389359288). The image is a checksummed Linux amd64 CI artifact retained for 14 days, with no registry publication, Hostinger verification or v1 release. For these follow-up features explicitly select commit `fae063f4fc2a4d03223ee9c528125020662bf703` from branch `codex/r1-recovery-operations-20261113`; main remains a separate earlier candidate.
+
+**Earlier main self-host candidate:** source `083ceed`, runtime `58f35f208f9b`, passed 129 tests, Docker/proxy/security and real disposable Kubernetes acceptance. A checksummed Linux amd64 image artifact is available from [CI run 43350428884](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43350428884). See [exact self-host evidence and limits](docs/SELF_HOST_ACCEPTANCE.md). This is not a registry publication or v1 release.
 
 **Earlier external receiver milestone:**
 
@@ -67,8 +69,8 @@ npm start
 
 Open http://127.0.0.1:4319 and paste the session token printed in your terminal. No dependency installation required. Do not share this token or redirect logs to a shared location. The token is generated per process unless `LAB_TOKEN` is supplied. Keep the terminal running; Ctrl-C stops the lab and discards its memory.
 
-1. Unlock the inbox and choose **Open capture workbench** in the first-run guide.
-2. Preview redaction, then capture the clearly labeled synthetic order.
+1. Unlock the inbox and open **Workbench**. The follow-up candidate also provides **Open capture workbench** in its first-run guide.
+2. Capture the clearly labeled synthetic order; in the candidate, preview redaction first.
 3. Inspect the redacted JSON and export its fixture.
 4. Change the synthetic amount, capture a second event, then compare it with the first.
 5. Delete events you no longer need.

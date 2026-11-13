@@ -130,10 +130,14 @@ Formal release creation must respect its outstanding authorization boundary. No 
 
 Related: [original plan](../PLAN.md), [product hypothesis](PRODUCT.md), [readiness](RELEASE_READINESS.md), [remaining gaps](RELEASE_ONE_GAPS.md), [Hostinger boundaries](HOSTINGER.md).
 
-## Latest engineering checkpoint
+## Earlier engineering checkpoint
 
 Source `083ceed`, runtime `58f35f208f9b`: 129 tests and full image/proxy/security/disposable-kind CI passed; a checksummed amd64 image artifact exists. [Evidence](SELF_HOST_ACCEPTANCE.md). This closes the initial Docker/image and disposable Kubernetes execution checks, not customer CNI/CSI acceptance, real Stripe account delivery, public TLS validation for this build, human usability or formal publication.
 
 ## Recovery/operations engineering follow-up
 
 See [current checkpoint](R1_RECOVERY_CHECKPOINT.md) for exact local/CI evidence and open gates. Offline migrations, local alerts and automated onboarding do not replace real receiver, human, Hostinger or approved publication acceptance.
+
+## Latest verified engineering follow-up
+
+Source `fae063f`, runtime `e764835f4f8d`: 147 tests on Node 22/24, five browser suites, exact-image lifecycle/offline migrations/alerts, advisory gates, disposable kind and a full 30-minute native reference workload passed in CI run `43389359288`. [Exact evidence and measured limits](R1_ENGINEERING_ACCEPTANCE.md). No version bump, formal release, actual Hostinger or real Stripe account delivery is implied; all human/receiver/publication gates above remain intact.

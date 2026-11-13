@@ -1,6 +1,8 @@
-# Kubernetes self-hosting package
+# Kubernetes self-hosting
 
-This repository includes executable Kubernetes resources, an immutable-image renderer, static/behavioral checks and a disposable kind acceptance harness. No real cluster was changed during implementation. Actual disposable-kind acceptance passed for source `083ceed` / runtime `58f35f208f9b`; see [exact evidence](SELF_HOST_ACCEPTANCE.md). This does not establish acceptance on your actual CNI/CSI or production cluster.
+Latest follow-up acceptance: [source fae063f / build e764835f4f8d](R1_ENGINEERING_ACCEPTANCE.md). The checksummed image was scanned and loaded into disposable kind 1.37; actual customer CNI/CSI and host-specific recovery remain separate gates.
+
+This repository includes executable Kubernetes resources, an immutable-image renderer, static/behavioral checks and a disposable kind acceptance harness. No existing/customer cluster was changed during implementation. Actual disposable-kind acceptance passed for source `fae063f` / runtime `e764835f4f8d`; see [exact evidence](R1_ENGINEERING_ACCEPTANCE.md). This does not establish acceptance on your actual CNI/CSI or production cluster.
 
 ## Defaults and contract
 

@@ -4,7 +4,9 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
-### Additional Release 1 engineering (not yet image/cluster verified)
+### Additional Release 1 engineering (verified candidate, unreleased)
+
+Source `fae063f` / runtime `e764835f4f8d` passed [all CI jobs](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43389359288): 147 tests on Node 22/24, five browser suites, Docker lifecycle/offline recovery, image advisory gates, disposable kind and a real 1,800-second native reference workload. Steady p95 3.084 ms; 0 HTTP 5xx; over-limit burst returned 51/150 HTTP 429; stopped-writer reopen matched 20 retained records. These are scoped synthetic measurements, not a Hostinger/container throughput SLA. See [exact engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md), including remaining human/receiver/Hostinger/publication gates.
 
 - Add offline stricter-redaction migration to a verified encrypted copy; reset labels and remove replay history from the copy while preserving source and deduplication metadata.
 - Prevent alert/fixture CLI bearer credentials from following opted-in environment proxies; use an explicit direct-loopback HTTP agent with bounded responses/deadlines. Harden fixture CLI secret-file loading and exclusive sources.

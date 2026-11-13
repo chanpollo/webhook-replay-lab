@@ -1,4 +1,6 @@
-# Self-host candidate acceptance — 2026-11-13
+# Earlier self-host candidate acceptance — 2026-11-13
+
+The latest follow-up is [source fae063f / build e764835f4f8d](R1_ENGINEERING_ACCEPTANCE.md). This document preserves the exact older source/image evidence below.
 
 Exact source: `083ceed3c978eac0eaa4a0721fe803fb26364a26`. Runtime build: `58f35f208f9b`, package `0.3.0` unreleased.
 

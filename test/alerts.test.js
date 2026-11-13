@@ -23,7 +23,5 @@ test('local alert probe authenticates, rejects remote URLs before fetch and neve
  for(let i=0;i<10;i++)assert.equal((await fetch(base+'/ingress',{method:'POST'})).status,401);
  const failed=await checkAlerts({base,token});assert.equal(failed.result.alerts.some(a=>a.code==='signature_failures'),true);assert.equal((await checkAlerts({base,token,previous:failed.diagnostics})).result.ok,true);
  const denied=await checkAlerts({base,token:'synthetic-wrong-admin-token-000000000'});assert.equal(denied.result.ok,false);assert.equal(denied.diagnostics,null);
- let called=false;for(const candidate of ['https://example.com','http://localhost:4319','http://127.0.0.1:4319/api/events','http://secret@127.0.0.1:4319','http://127.0.0.1:4319?secret'])await assert.rejects(checkAlerts({base:candidate,token,fetchImpl:()=>{called=true;}}));assert.equal(called,false);
- const redirected=await checkAlerts({base,token,fetchImpl:async(url,options)=>{assert.equal(options.redirect,'error');throw Error('private-token-in-error');}});assert.equal(JSON.stringify(redirected).includes('private-token-in-error'),false);
- const large=await checkAlerts({base,token,fetchImpl:async()=>new Response('x'.repeat(16385))});assert.equal(large.result.ok,false);
+ for(const candidate of ['https://example.com','http://localhost:4319','http://127.0.0.1:4319/api/events','http://secret@127.0.0.1:4319','http://127.0.0.1:4319?secret'])await assert.rejects(checkAlerts({base:candidate,token}));
 });

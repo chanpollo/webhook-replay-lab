@@ -1,0 +1,17 @@
+✔ alerts cover recovery, retained capacity, unknown delivery and fixed counter deltas without secrets (7.953833ms)
+✔ local alert probe authenticates, rejects remote URLs before fetch and never follows redirects (115.978917ms)
+✔ collections have deterministic hashes, strict names/count/shape and validate every fixture (6.719833ms)
+✔ collection preview does not store; invalid entries and insufficient capacity never partially import (150.158084ms)
+✔ CI verification is offline and replay requires explicit entry, target, confirmation and token (669.723625ms)
+✔ CLI unknown delivery exits nonzero without retry (73.09075ms)
+✔ fixture CLI uses a private exclusive secret file without leaking paths or tokens (812.337792ms)
+✔ direct local client bounds responses/time and refuses redirects, remote bases and malformed responses (105.074209ms)
+✔ alert and fixture CLIs never send bearer credentials through an opted-in environment proxy (385.828167ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2296.013333

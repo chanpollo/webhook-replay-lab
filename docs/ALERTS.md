@@ -8,7 +8,7 @@ node bin/alerts.mjs
 node bin/alerts.mjs --watch
 ```
 
-Default base: `http://127.0.0.1:4319`. `LAB_ALERT_BASE` may select another loopback port, including the local end of an existing SSH tunnel. Only HTTP with the literal `127.0.0.1` host and no credentials, path, query or fragment is accepted. Redirects are errors. No external alert destination, mail, chat message, public listener or notification account is created.
+Default base: `http://127.0.0.1:4319`. `LAB_ALERT_BASE` may select another loopback port, including the local end of an existing SSH tunnel. Only HTTP with the literal `127.0.0.1` host and no credentials, path, query or fragment is accepted. Redirects are errors. A private HTTP agent bypasses global and environment proxies even when Node proxy support is enabled. No external alert destination, mail, chat message, public listener or notification account is created.
 
 The probe uses the existing admin-only diagnostics route, a five-second deadline and a 16 KB response cap. JSON output has only `ok`, fixed alert codes and fixed corrective actions. Exit 0 means no current signal, 1 means an alert/unavailable service and 2 means invalid configuration. In watch mode it waits 60 seconds after each probe before the next; the process remains running. Stop with Ctrl-C. An operator can explicitly configure their own local service supervisor to collect this output and route notifications. **Someone must own that supervisor and response; this repository does not appoint a responder or guarantee alert delivery.** Keep the service and tunnel healthy, and never share token files or enable shell tracing.
 

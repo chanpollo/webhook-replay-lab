@@ -7,6 +7,7 @@ No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied
 ### Additional Release 1 engineering (not yet image/cluster verified)
 
 - Add offline stricter-redaction migration to a verified encrypted copy; reset labels and remove replay history from the copy while preserving source and deduplication metadata.
+- Prevent alert/fixture CLI bearer credentials from following opted-in environment proxies; use an explicit direct-loopback HTTP agent with bounded responses/deadlines. Harden fixture CLI secret-file loading and exclusive sources.
 - Add private loopback operational alert CLI and bounded signature-failure counters, with fixed actions and no external notifications.
 - Add session-only task onboarding for preview, capture, export, import and comparison; cover expiry, reset and responsive behavior.
 - Add process-crash/fsync and replay-commit fault tests. Fix replay returning a success after a transient failed pre-send storage commit; fail closed with 503 before further handling.

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import {readFileSync,statSync} from 'node:fs';
 import {validateFixture,validateCollection} from '../src/fixture.js';
+import {localJSON} from '../src/local-api.js';
+import {readSecret} from '../src/secrets.js';
 
 const [command,file,...args]=process.argv.slice(2);
 const output=value=>process.stdout.write(JSON.stringify(value)+'\n');
@@ -24,9 +26,9 @@ try {
    const base=new URL(options['--server']||'');
    if(base.protocol!=='http:'||base.hostname!=='127.0.0.1'||!base.port||base.username||base.password||base.pathname!=='/'||base.search||base.hash)throw Error('Server must be an explicit http://127.0.0.1:PORT');
    if(!options['--target']?.startsWith('https://'))throw Error('Explicit staging HTTPS target required');
-   const token=process.env.LAB_TOKEN_FILE?readFileSync(process.env.LAB_TOKEN_FILE,'utf8').trim():process.env.LAB_TOKEN;
+   const token=readSecret('LAB_TOKEN');
    if(!token||token.length<32)throw Error('LAB_TOKEN or LAB_TOKEN_FILE required');
-   async function api(path,body){const response=await fetch(new URL('/api/'+path,base),{method:body?'POST':'GET',redirect:'error',signal:AbortSignal.timeout(10000),headers:{authorization:'Bearer '+token,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});if(!response.ok)throw Error('Local API rejected '+path+' with HTTP '+response.status);return response.json();}
+   async function api(path,body){const response=await localJSON({base,path:'/api/'+path,token,body,maxBytes:32*1024*1024,timeoutMs:10000});if(response.status<200||response.status>=300)throw Error('Local API rejected '+path+' with HTTP '+response.status);return response.data;}
    const state=await api('events');if(!state.allowlist.includes(options['--target']))throw Error('Target is not in the local server staging allowlist');
    const event=await api('fixtures/import',{fixture:selected.fixture,confirmHash:selected.fixture.sha256});
    const approval=await api('prepare',{id:event.id,url:options['--target']});

@@ -1,10 +1,10 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';import {join} from 'node:path';import {tmpdir} from 'node:os';
+import {spawn} from 'node:child_process';import {mkdtempSync,writeFileSync,rmSync,chmodSync} from 'node:fs';import {join} from 'node:path';import {tmpdir} from 'node:os';
 import {validateCollection} from '../src/fixture.js';import {digest} from '../src/core.js';import {createLab} from '../src/server.js';
 const token='synthetic-collections-token-000000000';
 const pack=payload=>({version:1,payload,sha256:digest(payload)});
 const collection={kind:'webhook-fixture-collection',version:1,name:'Synthetic orders',fixtures:[{name:'first',fixture:pack({id:1})},{name:'second',fixture:pack({id:2})}]};
-function cli(args,env={}) {return new Promise((resolve,reject)=>{const p=spawn(process.execPath,['bin/fixtures.mjs',...args],{env:{...process.env,LAB_TOKEN:'',LAB_TOKEN_FILE:'',...env}});let stdout='',stderr='';p.stdout.on('data',b=>stdout+=b);p.stderr.on('data',b=>stderr+=b);p.on('error',reject);p.on('close',code=>resolve({code,output:JSON.parse(stdout),stderr}));});}
+function cli(args,env={}) {return new Promise((resolve,reject)=>{const cleanEnv={...process.env};delete cleanEnv.LAB_TOKEN;delete cleanEnv.LAB_TOKEN_FILE;const p=spawn(process.execPath,['bin/fixtures.mjs',...args],{env:{...cleanEnv,...env}});let stdout='',stderr='';p.stdout.on('data',b=>stdout+=b);p.stderr.on('data',b=>stderr+=b);p.on('error',reject);p.on('close',code=>resolve({code,output:JSON.parse(stdout),stderr}));});}
 async function lab(t,options={}) {const server=createLab({token,...options});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const base='http://127.0.0.1:'+server.address().port;
  const request=async(path,body)=>{const r=await fetch(base+'/api/'+path,{method:body?'POST':'GET',headers:{authorization:'Bearer '+token,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});return {status:r.status,data:await r.json()};};return {base,request};}
 test('collections have deterministic hashes, strict names/count/shape and validate every fixture',()=>{
@@ -35,4 +35,11 @@ test('CLI unknown delivery exits nonzero without retry',async t=>{
  const dir=mkdtempSync(join(tmpdir(),'lab-cli-unknown-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=join(dir,'fixture.json');writeFileSync(file,JSON.stringify(pack({synthetic:true})));
  let sends=0;const target='https://synthetic.example.test/hook';const f=await lab(t,{allowlist:[target],resolve:async()=>({}),send:async()=>{sends++;throw Error('synthetic timeout');}});
  const result=await cli(['replay',file,'--server',f.base,'--target',target,'--confirm','SEND TO STAGING'],{LAB_TOKEN:token});assert.equal(result.code,2);assert.equal(result.output.outcome,'unknown_delivery');assert.equal(sends,1);
+});
+
+test('fixture CLI uses a private exclusive secret file without leaking paths or tokens',async t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hook-cli-secret-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const file=join(dir,'fixture.json'),secret=join(dir,'token');writeFileSync(file,JSON.stringify(pack({synthetic:true})));writeFileSync(secret,token,{mode:0o600});let sends=0;const target='https://synthetic.example.test/hook';const f=await lab(t,{allowlist:[target],resolve:async()=>({}),send:async()=>{sends++;return {status:204};}});const args=['replay',file,'--server',f.base,'--target',target,'--confirm','SEND TO STAGING'];
+ assert.equal((await cli(args,{LAB_TOKEN_FILE:secret})).code,0);assert.equal(sends,1);
+ const ambiguous=await cli(args,{LAB_TOKEN_FILE:secret,LAB_TOKEN:token});assert.equal(ambiguous.code,1);assert.equal(ambiguous.output.outcome,'not_sent');
+ chmodSync(secret,0o644);const publicFile=await cli(args,{LAB_TOKEN_FILE:secret});assert.equal(publicFile.code,1);assert.equal(sends,1);for(const result of [ambiguous,publicFile])for(const value of [token,secret])assert.equal(JSON.stringify(result).includes(value),false);
 });

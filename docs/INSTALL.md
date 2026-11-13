@@ -2,6 +2,8 @@
 
 Choose the route that matches your machine. Hook has no runtime npm dependencies, so **`npm install` is not required**. Keep the admin interface on your own computer or behind SSH forwarding, never on a public website.
 
+Current follow-up: [offline migrations, private alerts and task onboarding](R1_RECOVERY_CHECKPOINT.md). These features are on the isolated candidate branch until reviewed/merged; use its exact tested commit rather than assuming main contains them.
+
 ## 1. Choose a version
 
 - **Stable:** `v0.2.1`, the latest published release identified by this project. Its features differ from the candidate.

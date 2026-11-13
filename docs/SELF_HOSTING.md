@@ -59,7 +59,7 @@ Only sanitized payloads, bounded attempt records and ingress dedup IDs are store
 - After a crash, prove there is **no running writer**, preserve the encrypted snapshot, then remove only `data/inbox.enc.lock`. Start and inspect recovered attempts. Never remove a live writer's lock.
 - Events expire after 24 hours and are inaccessible on the next API access; a sweep updates the snapshot within 30 seconds while running. On startup, expiry is enforced before API data is returned. Deleted/expired data may remain in old backups, filesystem snapshots, exports or storage blocks. No secure erasure claim.
 - Before upgrading, stop and back up. Keep the previous image/tag plus key and data backup. Restore that matched set to roll back; the alpha cannot read the beta encrypted store. The store schema is versioned and rejects unsupported versions.
-- Rotate the admin token or ingress key by stopping, replacing the corresponding secret and restarting. There is no overlapping-key window. Encryption-key rotation requires an offline migration that is **not implemented**: do not simply replace the key for existing data.
+- Rotate the admin token or ingress key by stopping, replacing the corresponding secret and restarting. There is no overlapping-key window. Use the [offline encryption-key rotation](STORAGE_KEY_ROTATION.md) to create and verify a separate encrypted copy; never replace the key in place. For stricter redaction, use the [offline migration](REDACTION_MIGRATION.md), noting its explicit removal of labels/history from the copy.
 
 ## Optional signed ingress
 

@@ -69,6 +69,9 @@ jobs:
       - name: Check isolated ingress reverse proxy
         run: LAB_TEST_IMAGE=webhook-replay-lab:test npm run test:proxy
 
+      - name: Check offline migration, rotation, alerts and rollback in exact image
+        run: LAB_TEST_IMAGE=webhook-replay-lab:test node test/offline-container.mjs
+
       - name: Scan immutable final image and Node advisories
         shell: bash
         run: |

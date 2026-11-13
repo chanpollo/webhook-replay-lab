@@ -1,0 +1,6 @@
+The verifier correctly distinguishes index identity from config identity, but does not bind its selected config to unambiguous OCI platform selection. Review was source-only; no tests, Docker loads, services, or private release artifacts were accessed.
+
+Review comment:
+
+- [P2] Bind the verified runtime to OCI platform selection — scripts/verify-image-archive.mjs:65-68
+  When an index contains multiple runtime manifests, this traversal selects a runtime solely by matching its config digest; it neither checks descriptor platforms nor rejects another Linux/amd64 runtime with a different config. Consequently, an index containing both the inspected image and a different amd64 image can pass verification even though platform-based loading can select the other image. Require an unambiguous Linux/amd64 runtime selected through the index descriptors and bind that selection to the Docker manifest and inspection. Add fixtures covering competing amd64 manifests and misleading platform descriptors; the current OCI fixture contains only one runtime manifest.

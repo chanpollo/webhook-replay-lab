@@ -8,7 +8,7 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 - [Install and platform support](docs/INSTALL.md)
 - [Verified image artifacts](docs/CONTAINER_IMAGE.md) and [Kubernetes self-hosting](docs/KUBERNETES.md)
-- [Release 1 roadmap](docs/ROADMAP.md), [engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md), [fresh exact-9a088a4 CI](docs/EXACT_SOURCE_CI.md) and [private release packet preparation](docs/RELEASE_PACKET.md)
+- [Release 1 roadmap](docs/ROADMAP.md), [engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md), [fresh exact-9a088a4 CI](docs/EXACT_SOURCE_CI.md), [private release packet preparation](docs/RELEASE_PACKET.md) and [archive identity verification](docs/IMAGE_ARCHIVE_IDENTITY.md)
 - [Fixtures and explicit replay CLI](docs/FIXTURES.md)
 - [Redaction rules](docs/REDACTION.md) and [offline migration](docs/REDACTION_MIGRATION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
 - [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md), [local alerts](docs/ALERTS.md) and [capacity/fault contract](docs/CAPACITY_REFERENCE.md)

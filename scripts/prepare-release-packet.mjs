@@ -32,6 +32,7 @@ export function validatePacketEvidence({commit,build,inspect,trivy,node,feed,end
  requireCondition(environment.filter(value=>value.startsWith('NODE_VERSION=')).length===1&&environment.includes('NODE_VERSION='+node.node),'Node/image version mismatch');
  requireCondition(trivy.SchemaVersion===2&&trivy.ArtifactType==='container_image'&&trivy.Metadata?.ImageID===build.imageId&&Array.isArray(trivy.Results)&&trivy.Results.some(result=>result.Class==='os-pkgs'&&result.Type==='alpine'),'Image scan identity/coverage missing');
  requireCondition(trivy.Results.every(result=>result.Vulnerabilities===undefined||(Array.isArray(result.Vulnerabilities)&&result.Vulnerabilities.length===0)),'Known image findings require resolution');
+ requireCondition(trivy.Results.every(result=>result.Secrets===undefined||(Array.isArray(result.Secrets)&&result.Secrets.length===0)),'Image secret findings require resolution');
  requireCondition(Array.isArray(node.unresolved)&&node.unresolved.length===0&&Array.isArray(node.unparsed)&&node.unparsed.length===0&&Number.isSafeInteger(node.entries)&&node.entries>0&&Number.isSafeInteger(node.matchedMajorRanges)&&node.matchedMajorRanges>=0&&node.matchedMajorRanges<=node.entries&&node.coveredByPatchedRanges===node.matchedMajorRanges&&node.sourceSha256===digest(feed),'Node advisory evidence mismatch or unresolved findings');
  const names=['node (22)','node (24)','container','kubernetes','browser','endurance'];
  requireCondition(ci.conclusion==='success'&&ci.status==='completed'&&/^https:\/\/github\.com\/chanpollo\/webhook-replay-lab\/actions\/runs\/\d+$/.test(ci.url)&&Array.isArray(ci.jobs)&&names.every(name=>ci.jobs.some(job=>job.name===name&&job.conclusion==='success'))&&ci.jobs.every(job=>job.conclusion==='success'),'All required CI jobs must pass');
@@ -54,6 +55,8 @@ export function prepareReleasePacket({evidence,output,commit,repository=fileURLT
  const archiveHash=fileHash(join(evidence,'image',archive));requireCondition(sums&&archiveHash===sums[1],'Archive checksum mismatch');
  requireCondition(retained.get('security/image-id.txt').toString('utf8').trim()===identity.imageId,'Scanned image identity mismatch');
  for(const artifact of provenance.artifacts)for(const [file,hash] of Object.entries(artifact.files))requireCondition((file==='image/'+archive?archiveHash:digest(retained.get(file)))===hash,'Artifact content/run binding mismatch');
+ const archiveIdentity=JSON.parse(execFileSync(process.execPath,[fileURLToPath(new URL('./verify-image-archive.mjs',import.meta.url)),join(evidence,'image',archive),'--expected-stdin'],{input:JSON.stringify({imageId:identity.imageId,tag:identity.imageTag,inspect:json('security/image-inspect.json'),archiveSha256:archiveHash}),encoding:'utf8',maxBuffer:1024*1024,timeout:45000,stdio:['pipe','pipe','pipe']}));
+ requireCondition(archiveIdentity.dockerImageId===identity.imageId&&archiveIdentity.archiveSha256===archiveHash&&archiveIdentity.platform==='linux/amd64'&&archiveIdentity.layerDiffIdsVerified===true&&/^sha256:[a-f0-9]{64}$/.test(archiveIdentity.configDigest),'Archive proof/snapshot mismatch');
  const parent=fs.realpathSync(dirname(resolve(output))),directory=fs.lstatSync(parent);
  requireCondition(directory.isDirectory()&&(directory.mode&0o022)===0&&(!process.getuid||directory.uid===process.getuid()),'Output parent must be owned and not writable by others');
  output=join(parent,basename(resolve(output)));
@@ -67,10 +70,11 @@ export function prepareReleasePacket({evidence,output,commit,repository=fileURLT
  const hashes={[`image/${archive}`]:sums[1]};
  function write(file,bytes){fs.mkdirSync(resolve(output,file,'..'),{recursive:true,mode:0o700});fs.writeFileSync(join(output,file),bytes,{mode:0o600,flag:'wx'});hashes[file]=digest(bytes);}
  for(const [file,bytes] of retained)write('evidence/'+file,bytes);
+ write('evidence/archive-identity.json',Buffer.from(JSON.stringify(archiveIdentity,null,2)+'\n'));
  write('evidence/workflow.yml',workflow);
  write('source.tar.gz',source);
- write('README.txt',Buffer.from(`UNRELEASED ENGINEERING PACKET — NOT APPROVED FOR PUBLICATION\nSource: ${commit}\nBuild: ${identity.build}\nCI: ${identity.ciRun}\nVerify SHA256SUMS, extract source.tar.gz, follow source/docs/CONTAINER_IMAGE.md and source/docs/INSTALL.md.\nThis includes a Docker-save gzip archive for Linux amd64, not an OCI-layout tar or published registry digest. Load only after verification; do not expose admin routes.\nNo credentials are provisioned and no service was deployed. Real Stripe/Hostinger/public TLS, human acceptance and registry/release approvals remain separate gates.\n`));
- const manifest={...identity,archiveSha256:sums[1],published:false,releaseApproved:false,files:hashes};
+ write('README.txt',Buffer.from(`UNRELEASED ENGINEERING PACKET — NOT APPROVED FOR PUBLICATION\nSource: ${commit}\nBuild: ${identity.build}\nCI: ${identity.ciRun}\nVerify SHA256SUMS, extract source.tar.gz, follow source/docs/CONTAINER_IMAGE.md and source/docs/INSTALL.md.\nThis is a Docker-save gzip archive for Linux amd64; modern Docker exports can also contain OCI layout/index blobs. See evidence/archive-identity.json for the distinct Docker ID kind and config digest. No registry publication is established by these local IDs. Load only after verification; do not expose admin routes.\nNo credentials are provisioned and no service was deployed. Real Stripe/Hostinger/public TLS, human acceptance and registry/release approvals remain separate gates.\n`));
+ const manifest={...identity,archiveIdentity,archiveSha256:sums[1],published:false,releaseApproved:false,files:hashes};
  write('packet.json',Buffer.from(JSON.stringify(manifest,null,2)+'\n'));
  fs.writeFileSync(join(output,'SHA256SUMS'),Object.entries(hashes).map(([file,hash])=>hash+'  '+file).join('\n')+'\n',{mode:0o600,flag:'wx'});
  return {...identity,output,published:false,releaseApproved:false};

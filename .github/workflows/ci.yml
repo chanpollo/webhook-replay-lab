@@ -112,11 +112,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          umask 077
           mkdir -p security-evidence
           image_id=$(docker image inspect webhook-replay-lab:test --format '{{.Id}}')
           printf '%s\n' "$image_id" > security-evidence/image-id.txt
-          docker image inspect "$image_id" > security-evidence/image-inspect.json
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb image --image-src docker --scanners vuln --exit-code 1 --format json "$image_id" > security-evidence/trivy.json
+          docker image inspect "$image_id" > "$RUNNER_TEMP/hook-image-inspect-private.json"
+          scan_status=0
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro aquasec/trivy:0.76.2@sha256:8f6bb947dbc528902e11f2f5be52f7b519f6a39d5d148f41166f2040499768fb image --image-src docker --scanners vuln,secret --image-config-scanners secret --exit-code 1 --format json "$image_id" > "$RUNNER_TEMP/hook-image-scan-private.json" || scan_status=$?
+          # Security retention policy belongs to the workflow revision, including
+          # manual runs whose tested source predates this standalone helper.
+          [[ "$GITHUB_SHA" =~ ^[a-f0-9]{40}$ ]]
+          if ! git cat-file -e "$GITHUB_SHA:scripts/retain-image-security.mjs"; then
+            git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          fi
+          git show "$GITHUB_SHA:scripts/retain-image-security.mjs" > "$RUNNER_TEMP/hook-retain-image-security.mjs"
+          node "$RUNNER_TEMP/hook-retain-image-security.mjs" "$RUNNER_TEMP/hook-image-scan-private.json" "$RUNNER_TEMP/hook-image-inspect-private.json" security-evidence
+          test "$scan_status" = 0
           node_version=$(docker run --rm --network none "$image_id" node -p 'process.versions.node')
           curl --fail --silent --show-error --max-time 30 https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json -o security-evidence/node-core-feed.json
           SEMVER_MODULE="$(npm root -g)/npm/node_modules/semver" node scripts/check-node-advisories.cjs "$node_version" security-evidence/node-core-feed.json > security-evidence/node-core-result.json

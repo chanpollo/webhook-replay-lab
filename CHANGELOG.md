@@ -4,6 +4,11 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
+### Saved-image identity follow-up
+
+- Verify saved-image archive graphs and distinguish Docker local index/manifest IDs from config digests; retain archive identity proof in private packets. Modern Docker-save exports can also contain OCI layout/index blobs. No registry publication or Release 1 approval is implied.
+- Enable image-file and image-config secret scanning in the existing immutable-image CI gate. Reject retained secret findings when preparing a packet; earlier vulnerability-only scans are not retroactively secret scans.
+
 ### Exact-checkpoint CI and release preparation follow-up
 
 - Fresh CI execution explicitly checks out `9a088a4` in all six jobs, stamps source separately from workflow identity and passes 147 tests, container/security/lifecycle, browser, kind and a new full 30-minute workload; earlier `fae063f` results are not substituted.

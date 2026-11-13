@@ -127,3 +127,7 @@ Formal release creation must respect its outstanding authorization boundary. No 
 - Agree the operator/service envelope and human pilot participants, then approve the formal release when its evidence and boundaries are clear.
 
 Related: [original plan](../PLAN.md), [product hypothesis](PRODUCT.md), [readiness](RELEASE_READINESS.md), [remaining gaps](RELEASE_ONE_GAPS.md), [Hostinger boundaries](HOSTINGER.md).
+
+## Latest engineering checkpoint
+
+Source `083ceed`, runtime `58f35f208f9b`: 129 tests and full image/proxy/security/disposable-kind CI passed; a checksummed amd64 image artifact exists. [Evidence](SELF_HOST_ACCEPTANCE.md). This closes the initial Docker/image and disposable Kubernetes execution checks, not customer CNI/CSI acceptance, real Stripe account delivery, public TLS validation for this build, human usability or formal publication.

@@ -137,3 +137,5 @@ Kubernetes packaging is being implemented separately. Treat it as **not cluster-
 The CI workflow is configured to retain a verified Linux amd64 Docker-save archive for 14 days, after the final-image security gate. Use only a successful exact-commit run; see [download and identity verification](CONTAINER_IMAGE.md#candidate-ci-download-not-a-registry-release). This is not a public registry release, and does not establish arm64 or Kubernetes support.
 
 For an already verified, locally loaded image, use [`compose.image.yaml`](../compose.image.yaml) rather than the source-build profile. Follow the [image Compose commands](CONTAINER_IMAGE.md#run-the-verified-local-image-with-compose): required `LAB_IMAGE`, no implicit build/pull, private credentials, and the same explicit Compose project name for persistent lifecycle operations. Do not switch an existing store without stopping its writer and taking an offline backup.
+
+Latest self-host image and disposable Kubernetes acceptance: [source 083ceed evidence](SELF_HOST_ACCEPTANCE.md). This adds CI runtime evidence, not Windows, actual Hostinger or customer-cluster acceptance.

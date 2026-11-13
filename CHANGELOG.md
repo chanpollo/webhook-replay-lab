@@ -4,7 +4,7 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
-### Next candidate work (not yet release acceptance)
+### Self-host candidate engineering acceptance (not a formal release)
 
 - Add shared bounded private secret-file loading, a loaded-image Compose profile, hardened single-writer Kubernetes manifests and isolated cluster acceptance CI.
 - Export the exact scanned Linux amd64 image as a checksummed build artifact, not a registry publication or formal release.
@@ -13,7 +13,7 @@ No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied
 - Harden ingress header/body concurrency, timestamp boundaries and persisted payload-conflict detection while preserving legacy snapshot readability.
 - Add an opt-in Stripe test-mode signature adapter; never accept live-mode events or forward original provider authorization/signatures.
 - Add an isolated Caddy route-isolation CI gate, a Release 1 roadmap and a multi-platform installation guide with explicit tested/untested coverage.
-- These changes need their own exact-commit CI and relevant host/provider acceptance; the earlier external-receiver evidence below does not certify the new runtime.
+- Source `083ceed` / runtime `58f35f208f9b` passed 129 tests and exact Docker/proxy/security/disposable-kind CI. See [self-host acceptance](docs/SELF_HOST_ACCEPTANCE.md). Actual customer host/provider acceptance remains open; the earlier external-receiver evidence below does not certify the new runtime.
 
 ### Latest candidate additions and verification
 

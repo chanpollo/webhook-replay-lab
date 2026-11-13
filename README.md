@@ -17,6 +17,10 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 ### Verified candidate evidence
 
+**Newest self-host candidate:** source `083ceed`, runtime `58f35f208f9b`, passed 129 tests, Docker/proxy/security and real disposable Kubernetes acceptance. A checksummed Linux amd64 image artifact is available from [CI run 43350428884](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43350428884). See [exact self-host evidence and limits](docs/SELF_HOST_ACCEPTANCE.md). This is not a registry publication or v1 release.
+
+**Earlier external receiver milestone:**
+
 Runtime build `98aadcff4fdf` passed 92 tests, Node 22/24 CI, container/security checks, owned-host isolated install/upgrade/rollback/recovery and controlled external HTTPS replay. The receiver recorded one matching, redacted request with no forwarded Authorization header; scoped capture/read tokens could not replay. Temporary receivers were closed afterward. See [exact candidate acceptance and cleanup](docs/FINAL_CANDIDATE_ACCEPTANCE.md).
 
 [Fresh-install walkthrough](docs/FRESH_INSTALL_AGENT_WALKTHROUGH.md) covers native Node setup, CLI fixture verification and encrypted restart; it is an agent-operated simulation, **not human usability evidence**. The documented runtime was last verified on [source b7104f9 and its CI](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43288579641); inspect the CI for your chosen revision rather than assuming every later checkout passed. No live Hostinger deployment, partner-program approval, permanent public ingress or v1 release is claimed.

@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import http
 import {createLab} from '../src/server.js';import {createStore} from '../src/store.js';
 const token='a'.repeat(64),secret='whsec_synthetic_only_not_an_account_secret',genericKey='ab'.repeat(32),clock=1800000000000;
 const event=(id='evt_synthetic')=>({object:'event',id,livemode:false,data:{secret:'must-not-store',note:'สวัสดี'}});
-const signed=raw=>`t=${clock/1000},v1=${createHmac('sha256',secret).update(String(clock/1000)+'.').update(raw).digest('hex')}`;
+const signed=(raw,at=clock)=>`t=${Math.floor(at/1000)},v1=${createHmac('sha256',secret).update(String(Math.floor(at/1000))+'.').update(raw).digest('hex')}`;
 function memoryStore(initial=null){let state=initial;return{load:()=>structuredClone(state),save:v=>{state=structuredClone(v);},close(){},get state(){return structuredClone(state);}};}
 async function start(t,opts={}){const store=opts.store||memoryStore(),server=createLab({token,store,stripeSecret:secret,now:()=>clock,...opts});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const base='http://127.0.0.1:'+server.address().port;return{store,server,base,async post(raw,header=signed(raw),path='/ingress/stripe'){const r=await fetch(base+path,{method:'POST',headers:{'content-type':'application/json','stripe-signature':header},body:raw});return{status:r.status,body:await r.json()};}};}
 test('Stripe route disabled by default and requires persistent store',async t=>{assert.throws(()=>createLab({token,stripeSecret:secret}),/persistent/);const f=await start(t,{stripeSecret:null});assert.equal((await f.post('{}')).status,404);});
@@ -18,6 +18,20 @@ test('Stripe dedup/conflict persists and generic ID namespace cannot suppress St
 });
 test('duplicate physical Stripe headers rejected even if combined value contains valid signature',async t=>{
  const f=await start(t),raw=JSON.stringify(event());const status=await new Promise((resolve,reject)=>{const q=http.request(f.base+'/ingress/stripe',{method:'POST',headers:['Host',new URL(f.base).host,'Content-Type','application/json','Stripe-Signature',signed(raw),'stripe-signature','v1='+('0'.repeat(64))]},r=>{r.resume();r.on('end',()=>resolve(r.statusCode));});q.on('error',reject);q.end(raw);});assert.equal(status,401);assert.equal(f.store.state,null);
+});
+test('Stripe retry re-signs the same event/body with fresh time without duplicate capture, including encrypted restart',async t=>{
+ const dir=mkdtempSync(join(tmpdir(),'hook-stripe-retry-')),path=join(dir,'inbox.enc'),key='cd'.repeat(32);let now=clock,g;
+ const f=await start(t,{store:createStore({path,key}),now:()=>now}),raw=JSON.stringify(event('evt_retrysynthetic')),original=signed(raw,now);
+ try {
+  assert.equal((await f.post(raw,original)).status,201);now+=60000;const fresh=signed(raw,now);assert.notEqual(fresh,original);
+  const retry=await f.post(raw,fresh);assert.equal(retry.status,200);assert.equal(retry.body.duplicate,true);
+  // Even a retained ID must authenticate; stale signatures cannot probe receipts.
+  now=clock+301000;assert.equal((await f.post(raw,original)).status,401);assert.equal((await f.post(raw,signed(raw,now))).status,200);
+  await new Promise(resolve=>f.server.close(resolve));g=await start(t,{store:createStore({path,key}),now:()=>now});now+=1000;
+  assert.equal((await g.post(raw,signed(raw,now))).status,200);
+  const changed=JSON.stringify({...event('evt_retrysynthetic'),extra:1});assert.equal((await g.post(changed,signed(changed,now))).status,409);
+  const response=await fetch(g.base+'/api/events',{headers:{authorization:'Bearer '+token}}),state=await response.json();assert.equal(state.events.length,1);assert.equal(state.events[0].payload.data.secret,'[REDACTED]');
+ }finally{await new Promise(resolve=>f.server.close(resolve));if(g)await new Promise(resolve=>g.server.close(resolve));rmSync(dir,{recursive:true,force:true});}
 });
 test('Stripe shared signed budget remains bounded; failures cannot acknowledge persistence',async t=>{
  const f=await start(t),raw=JSON.stringify(event());assert.equal((await f.post(raw)).status,201);for(let i=1;i<120;i++)assert.equal((await f.post(raw)).status,200);assert.equal((await f.post(raw)).status,429);

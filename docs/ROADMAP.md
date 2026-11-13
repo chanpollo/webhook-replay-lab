@@ -54,7 +54,7 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 **Exit evidence:** owned test sender → HTTPS receiver → sanitized durable event → explicit staging replay → matching receipt, on the exact release candidate. Negative tests must reject bad/expired signatures, altered raw bytes, duplicate/out-of-window cases as documented and oversized/slow requests. Public admin and unknown routes must be inaccessible. Independent threat-model review has no unresolved critical/high finding.
 
-**Dependencies:** authorized Stripe test-mode sandbox account/keys and approved owned DNS/TLS/exposure. Develop adapters and negative fixtures offline first; do not open an endpoint as a side effect.
+**Dependencies:** authorized Stripe test-mode sandbox account/session and its correct signing secret. A [local CLI delivery test](STRIPE_LOCAL_TEST.md) can proceed without public DNS/TLS or registering a public URL when that session is available. Approved owned DNS/TLS/exposure remains a separate prerequisite for public receiver acceptance. Develop adapters and negative fixtures offline first; do not open an endpoint as a side effect.
 
 ### R1.3 — Storage, access and recovery that operators can trust
 

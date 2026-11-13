@@ -11,6 +11,8 @@ No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied
 - Add private loopback operational alert CLI and bounded signature-failure counters, with fixed actions and no external notifications.
 - Add session-only task onboarding for preview, capture, export, import and comparison; cover expiry, reset and responsive behavior.
 - Add process-crash/fsync and replay-commit fault tests. Fix replay returning a success after a transient failed pre-send storage commit; fail closed with 503 before further handling.
+- Verify Stripe retry dedup with fresh timestamp/signature and encrypted restart; document an authorized CLI local-listener path without implying public TLS acceptance.
+- Gate exact-image upgrade/rollback/restore against the pinned v0.2.1 application source on the current patched runtime.
 - Add a dedicated 30-minute CI workload with predeclared bounds, phase latency/status counts, CPU/RSS/disk samples and stopped-writer verification.
 
 - Add offline encryption-key rotation to a distinct destination, preserving and locking the original; validate and read back the encrypted copy before reporting success.

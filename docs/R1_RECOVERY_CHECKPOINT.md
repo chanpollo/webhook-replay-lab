@@ -10,12 +10,14 @@ Baseline: clean `main` at `9f3d86b`. No prior work was reverted. The candidate r
 - [Local operational alerts](ALERTS.md): fixed health/recovery/capacity/signature-failure/unknown-delivery signals over the private loopback admin endpoint; no external notification destination.
 - Session-only onboarding for preview, capture, fixture download/import and comparison, with staging/unknown-delivery guidance and responsive browser coverage.
 - Crash/fsync and failed replay-commit tests. They found and fixed a transient pre-send storage failure that could previously be caught and followed by HTTP 200; it now fails closed with 503.
+- Explicit Stripe retry coverage changes signature/timestamp while retaining event ID/raw bytes, including stale-signature denial, changed-body conflict and real encrypted restart. Existing same-header dedup tests remain.
+- Exact-image lifecycle CI now also pins the v0.2.1 source commit for upgrade/rollback/re-upgrade and separate-volume restore; both sources use the current patched base runtime.
 - Dedicated 30-minute CI workload and locked test-only browser acceptance. See the [predeclared reference and limits](CAPACITY_REFERENCE.md).
 
 ## Local evidence
 
-- Node 22.14.0: **146/146 passed**, no skips ([raw output](evidence/r1-key-rotation/node22.txt)).
-- Node 24.15.0: **146/146 passed**, no skips ([raw output](evidence/r1-key-rotation/node24.txt)).
+- Node 22.14.0: **147/147 passed**, no skips ([raw output](evidence/r1-key-rotation/node22.txt)).
+- Node 24.15.0: **147/147 passed**, no skips ([raw output](evidence/r1-key-rotation/node24.txt)).
 - `npm run check` and `git diff --check`: passed locally. Test-only Playwright lockfile npm advisory check reports zero known findings; this is separate from the shipped image scan.
 - [Scoped source review](R1_SOURCE_REVIEW.md) rejects equivalent old/new hex keys and incomplete diagnostics that could otherwise appear healthy; it is separate from independent human threat review.
 - Five isolated Chrome browser suites passed: UI/replay, fixtures, redaction, onboarding and dashboard ([raw summaries](evidence/r1-key-rotation/browser.txt)). Screenshots contain synthetic captures and injected replay outcomes only. Mobile layouts were checked at 320/390/1440 px; visual review here is agent review, not independent human acceptance.
@@ -35,6 +37,6 @@ The Mac Docker daemon is unavailable. The new runtime therefore still requires e
 
 The roadmap scope is unchanged. Exact candidate CI, observed operator migration/cutover on each deployment route, a notification supervisor/responder, independent threat review and human task/interview evidence remain required. Process/fsync tests do not prove power-loss or actual customer volume durability.
 
-External tests require an authorized Stripe test-mode sandbox and owned HTTPS receiver. Hostinger acceptance requires a named authorized environment and real install/lifecycle/network/storage evidence. Permanent image publication needs an approved registry destination/publication authorization, and formal release needs exact final-commit CI and its separate authorization boundary resolved. These gates remain open rather than waived to label this Release 1.
+Real Stripe delivery can first use an authorized sandbox CLI session and its own listener secret without public HTTPS; [local test status/procedure](STRIPE_LOCAL_TEST.md). No CLI/config/session was available here. Public receiver TLS/isolation and external staging replay separately require an authorized owned HTTPS environment. Hostinger acceptance requires a named authorized environment and real install/lifecycle/network/storage evidence. Permanent image publication needs an approved registry destination/publication authorization, and formal release needs exact final-commit CI and its separate authorization boundary resolved. These gates remain open rather than waived to label this Release 1.
 
 See [full roadmap](ROADMAP.md) and [prior self-host acceptance](SELF_HOST_ACCEPTANCE.md).

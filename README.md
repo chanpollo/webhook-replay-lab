@@ -8,7 +8,7 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 
 - [Install and platform support](docs/INSTALL.md)
 - [Verified image artifacts](docs/CONTAINER_IMAGE.md) and [Kubernetes self-hosting](docs/KUBERNETES.md)
-- [Release 1 roadmap](docs/ROADMAP.md) and [latest engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md)
+- [Release 1 roadmap](docs/ROADMAP.md), [engineering acceptance](docs/R1_ENGINEERING_ACCEPTANCE.md), [fresh exact-9a088a4 CI](docs/EXACT_SOURCE_CI.md) and [private release packet preparation](docs/RELEASE_PACKET.md)
 - [Fixtures and explicit replay CLI](docs/FIXTURES.md)
 - [Redaction rules](docs/REDACTION.md) and [offline migration](docs/REDACTION_MIGRATION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
 - [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md), [local alerts](docs/ALERTS.md) and [capacity/fault contract](docs/CAPACITY_REFERENCE.md)
@@ -16,6 +16,8 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 - [Self-hosting, backups and recovery](docs/SELF_HOSTING.md) and [offline storage-key rotation](docs/STORAGE_KEY_ROTATION.md)
 
 ### Verified candidate evidence
+
+**Fresh checkpoint verification:** source `9a088a4`, build `e764835f4f8d`, was actually checked out in every job of [run 43395140386](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43395140386), with 147 tests, all platform/security/browser gates and a new full 30-minute workload passing. Its workflow definition is `fe24b7a`; the separate identities and six checkout guards are [retained explicitly](docs/EXACT_SOURCE_CI.md). Separate automated reviews found four P2 issues in new packet tooling; all were fixed and [re-reviewed](docs/INDEPENDENT_REVIEW_9A.md). Packet preparation does not publish an image or approve Release 1.
 
 **Recovery/operations follow-up (isolated branch, unreleased):** source `fae063f`, build `e764835f4f8d`, passed 147 tests on Node 22/24, five browser suites, Docker install/upgrade/rollback/restore, image/security, disposable kind and a full 30-minute native reference workload. [Exact evidence, measurements and remaining gates](docs/R1_ENGINEERING_ACCEPTANCE.md); [CI run 43389359288](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43389359288). The image is a checksummed Linux amd64 CI artifact retained for 14 days, with no registry publication, Hostinger verification or v1 release. For these follow-up features explicitly select commit `fae063f4fc2a4d03223ee9c528125020662bf703` from branch `codex/r1-recovery-operations-20261113`; main remains a separate earlier candidate.
 
@@ -143,7 +145,7 @@ Use the dedicated private persistent profile in [the Hostinger guide](docs/HOSTI
 
 ## Checks
 
-Tests require Node.js 22+ and OpenSSL on PATH (for a temporary local TLS certificate). Tests use synthetic data; the HTTPS transport tests never contact an external endpoint or weaken production destination validation.
+Tests require Node.js 22+, Git, zip/unzip and OpenSSL on PATH (for a temporary local TLS certificate). Release collector tests use a fake local GitHub CLI and ZIP fixtures without network access. Tests use synthetic data; the HTTPS transport tests never contact an external endpoint or weaken production destination validation.
 
 ```sh
 npm test

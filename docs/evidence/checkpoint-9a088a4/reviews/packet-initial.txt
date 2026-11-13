@@ -1,0 +1,9 @@
+พบช่องว่างในการยืนยัน reference workload และการปฏิเสธ advisory scan ที่ไม่มี range ตรงโดยไม่จำเป็น ส่วน tested-source/workflow SHA แยกกันถูกต้อง และผลสำเร็จระบุชัดว่าไม่ได้เผยแพร่หรืออนุมัติ release
+
+Full review comments:
+
+- [P2] Validate the reference workload, not just elapsed duration — scripts/prepare-release-packet.mjs:32-34
+  หากนำผล benchmark ที่ลด workload มาใช้ ตัวตรวจยังยอมรับผลที่รัน 1,800 วินาทีแต่มี steady request เพียงหนึ่งครั้งและ burst 429 อีกหนึ่งครั้ง แม้เปลี่ยน reference limits เป็น 1 ทั้งหมด เพราะตรวจเพียงจำนวน request เป็นบวกและผลรวม status ตรงกัน จึงยืนยัน full-duration reference workload ไม่ได้ ควรตรวจ limits และ workload coverage ให้สอดคล้องกับ `test/endurance.mjs` รวมถึง burst 150 requests และเพิ่ม negative tests สำหรับ workload ที่ลดลง
+
+- [P2] Accept a clean advisory scan with zero matching ranges — scripts/prepare-release-packet.mjs:29-29
+  เมื่อ trusted advisory feed ไม่มี vulnerable range ที่ตรงกับ Node version ที่ตรวจ `scripts/check-node-advisories.cjs` จะสำเร็จพร้อม `matchedMajorRanges: 0`, `coveredByPatchedRanges: 0` และ unresolved/unparsed ว่าง แต่เงื่อนไข `matchedMajorRanges>0` ปฏิเสธผลที่ปลอดภัยนี้ ทำให้เตรียม packet ไม่ได้ทั้งที่ security gate ผ่าน ควรยอมรับจำนวนเต็มศูนย์และคงการตรวจ unresolved, unparsed, feed hash และความสอดคล้องของจำนวน ranges

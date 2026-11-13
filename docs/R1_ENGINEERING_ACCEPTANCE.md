@@ -1,4 +1,6 @@
-# Release 1 engineering acceptance — 2026-11-13
+# Earlier Release 1 engineering acceptance — 2026-11-13
+
+For fresh execution of `9a088a4` (not substituted from this older source), see [exact-source CI and retained evidence](EXACT_SOURCE_CI.md). Release-packet tooling and separate automated reviews are documented in [packet preparation](RELEASE_PACKET.md) and [independent review](INDEPENDENT_REVIEW_9A.md).
 
 **Tested application source:** `fae063f4fc2a4d03223ee9c528125020662bf703`, runtime build `e764835f4f8d`, unreleased package `0.3.0`. [CI run 43389359288 passed every job](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43389359288). Work is on `codex/r1-recovery-operations-20261113`; main was checked unchanged at `9f3d86b`. No v1 label, formal release, public receiver, registry publication or actual Hostinger deployment is implied.
 

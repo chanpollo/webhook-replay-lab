@@ -1,0 +1,15 @@
+{
+  "reviewType": "separate read-only automated contexts",
+  "humanAudit": false,
+  "tool": "Codex CLI 0.166.0",
+  "applicationRange": [
+    "9f3d86b5566655917006ec596bf8cf9e26877e49",
+    "9a088a4f65fee223dcd2fc1e05f9289309a58235"
+  ],
+  "toolingFileSha256": {
+    "scripts/collect-ci-evidence.mjs": "ab112536fe11406f562ef33b757aa2e4ec860cf6cc7160e8cee60694149e7525",
+    "scripts/prepare-release-packet.mjs": "b96f5bd951586abaa327875ee969a2f0db29d77e50e5e219690bbe4ed05ca3d2",
+    "test/ci-evidence.test.js": "c2f8f712450e1d60a0ccf9d1f162be9461e7f1c6d6b7131ce906c51db748bcc5",
+    "test/release-packet.test.js": "b647e83c62b40c4177872b66a40141ed837d038a410fecb43c26edb5c5dbc102"
+  }
+}

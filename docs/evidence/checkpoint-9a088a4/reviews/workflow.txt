@@ -1,0 +1,1 @@
+ไม่พบข้อบกพร่องที่ actionable ใน workflow diff: ทุก job checkout และตรวจ SHA เดียวกัน, รัน CI ใหม่โดยไม่ reuse ผลจาก commit ก่อนหน้า, provenance ของ image/endurance ใช้ source SHA และ security gates เดิมยังอยู่ครบ ข้อจำกัด: เป็น static source review เท่านั้น ไม่ได้รัน GitHub Actions, Docker หรือ endurance และไม่ได้ยืนยันผล CI จริงผ่านบริการภายนอก

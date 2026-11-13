@@ -1,0 +1,1 @@
+ไม่พบ actionable bug ที่เหลือจากการตรวจทั้งสี่ไฟล์: การแก้ P2 ทั้งสี่จุดและการผูก GitHub host, ZIP, ไฟล์, run, workflow และ PR ancestry สอดคล้องกัน รวมถึงขอบเขตและสิทธิ์ output ทั้งนี้เป็น trusted-download consistency ไม่ใช่ cryptographic publisher authentication ตรวจ syntax ผ่าน แต่ไม่ได้รัน tests เพราะมีการเขียนไฟล์ซึ่งขัดกับข้อจำกัด read-only

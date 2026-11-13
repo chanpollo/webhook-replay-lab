@@ -1,0 +1,6 @@
+container	Verify immutable checked-out source	2026-11-13T08:41:10.6059731Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a
+node (22)	Verify immutable checked-out source	2026-11-13T08:41:11.8415532Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a
+browser	Verify immutable checked-out source	2026-11-13T08:41:11.1365888Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a
+node (24)	Verify immutable checked-out source	2026-11-13T08:41:11.2072509Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a
+endurance	Verify immutable checked-out source	2026-11-13T08:41:12.1247536Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a
+kubernetes	Verify immutable checked-out source	2026-11-13T08:42:19.2964150Z Tested source: 9a088a4f65fee223dcd2fc1e05f9289309a58235; workflow source: fe24b7a6f1740ea18ab6dcea807b62c287b0480a

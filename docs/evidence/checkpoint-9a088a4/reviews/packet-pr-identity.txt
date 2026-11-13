@@ -1,0 +1,6 @@
+Valid pull-request CI evidence is rejected because the API head commit and the workflow's synthetic merge commit are treated as the same identity. Review was read-only; tests that create temporary files were not executed.
+
+Review comment:
+
+- [P2] Distinguish PR merge commits from the run's head SHA — scripts/prepare-release-packet.mjs:20-20
+  For a successful `pull_request` run, GitHub's run API reports the PR branch tip in `head_sha`, while this repository's workflow checks out `github.sha` and records `GITHUB_SHA`—the synthetic merge commit—in `build.workflowCommit`. The collector copies the API's `head_sha` into `ci.headSha`, so this comparison rejects valid PR evidence even when every artifact belongs to the exact requested run and all hashes match. Preserve the API head SHA for artifact/run binding, but represent and validate the workflow's merge-commit identity separately.

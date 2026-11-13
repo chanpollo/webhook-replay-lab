@@ -1,0 +1,78 @@
+[
+    {
+        "Id": "sha256:dcf8c2d68d70325de13fe41aebd02c4f00fd42389a847f864e680c75d96eec8b",
+        "RepoTags": [
+            "webhook-replay-lab:release-candidate",
+            "webhook-replay-lab:test"
+        ],
+        "RepoDigests": [
+            "webhook-replay-lab@sha256:dcf8c2d68d70325de13fe41aebd02c4f00fd42389a847f864e680c75d96eec8b"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-13T08:41:15.18635697Z",
+        "Config": {
+            "User": "node",
+            "ExposedPorts": {
+                "4319/tcp": {}
+            },
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NODE_VERSION=24.22.3",
+                "YARN_VERSION=1.22.22"
+            ],
+            "Entrypoint": [
+                "docker-entrypoint.sh"
+            ],
+            "Cmd": [
+                "node",
+                "src/server.js"
+            ],
+            "WorkingDir": "/app",
+            "ArgsEscaped": true,
+            "Healthcheck": {
+                "Test": [
+                    "CMD-SHELL",
+                    "node -e \"fetch('http://127.0.0.1:4319/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""
+                ],
+                "Interval": 30000000000,
+                "Timeout": 3000000000,
+                "StartPeriod": 5000000000,
+                "Retries": 3
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 62655867,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:75f1d9657d880da5f75298e8f40e9928bb6e260c50d26f97af196845307e3064",
+                "sha256:cb540e45c2e50b1fc73164c6cd17239f87ae803f1e001e0494e2fa9eb90cbd8d",
+                "sha256:b4e5ae444e1da0b8c5fd0ff3893ac468322d35c57300012877997e15af6644a2",
+                "sha256:d9f34054bd2861ec76568b74a9673fbd94a817c25d81bffeaa54f5f1d384f204",
+                "sha256:e347bf251ac48d7a9ffd9e70d36f69062944aaa3a07a8567cbf8a71bb2fe1e8a",
+                "sha256:2c187cb04358d63084e25f9c1a2b9594c76a4dfcd0f78cd0aedc53e423e1f501",
+                "sha256:7a319d28641ecddf63d6c6682b8f372a4fb4839120e061c0c30f7ffe7e86f87a",
+                "sha256:059376eb73b14ddd2d871edf7f7e544fac87f9a523c017789107884a9ae25d82",
+                "sha256:8df766c7159070e797a205936a6c5f9606f24494e8697d55e790b3ae02c75104",
+                "sha256:b907be7e2bbd4c848429c51c4c71d61eec2daa1d2e0b9e32bef25d119af8d79e"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-13T08:41:45.223661501Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "digest": "sha256:dcf8c2d68d70325de13fe41aebd02c4f00fd42389a847f864e680c75d96eec8b",
+            "size": 856
+        },
+        "Identity": {
+            "Build": [
+                {
+                    "Ref": "7xbrcu0thdhlt2qtfhugpginr",
+                    "CreatedAt": "2026-11-13T08:41:15.306816698Z"
+                }
+            ]
+        }
+    }
+]

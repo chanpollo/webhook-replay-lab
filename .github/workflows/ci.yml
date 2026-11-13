@@ -72,6 +72,14 @@ jobs:
       - name: Check offline migration, rotation, alerts and rollback in exact image
         run: LAB_TEST_IMAGE=webhook-replay-lab:test node test/offline-container.mjs
 
+      - name: Check pinned stable-source upgrade, rollback and isolated restore
+        shell: bash
+        run: |
+          git fetch --depth=1 origin tag v0.2.1
+          test "$(git rev-parse v0.2.1^{commit})" = "8f803f01a14b378edd27653bd5f900b19ff099f2"
+          docker tag webhook-replay-lab:test webhook-replay-lab:release-candidate
+          node test/lifecycle-smoke.mjs
+
       - name: Scan immutable final image and Node advisories
         shell: bash
         run: |

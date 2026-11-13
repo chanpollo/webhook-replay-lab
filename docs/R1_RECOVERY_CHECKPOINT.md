@@ -1,6 +1,6 @@
 # Release 1 engineering checkpoint — 2026-11-13
 
-Baseline: clean `main` at `9f3d86b`. No prior work was reverted. The candidate remains v0.3.0, unreleased; runtime build `695cba377b81`.
+Baseline: clean `main` at `9f3d86b`. No prior work was reverted. The candidate remains v0.3.0, unreleased; runtime build `e52b4598eb01`.
 
 ## Completed engineering
 
@@ -16,7 +16,7 @@ Baseline: clean `main` at `9f3d86b`. No prior work was reverted. The candidate r
 - Node 22.14.0: **143/143 passed**, no skips ([raw output](evidence/r1-key-rotation/node22.txt)).
 - Node 24.15.0: **143/143 passed**, no skips ([raw output](evidence/r1-key-rotation/node24.txt)).
 - `npm run check` and `git diff --check`: passed locally. Test-only Playwright lockfile npm advisory check reports zero known findings; this is separate from the shipped image scan.
-- Source review additionally rejects equivalent old/new hex keys even when their letter case differs; rotation must change the key bytes.
+- [Scoped source review](R1_SOURCE_REVIEW.md) rejects equivalent old/new hex keys and incomplete diagnostics that could otherwise appear healthy; it is separate from independent human threat review.
 - Five isolated Chrome browser suites passed: UI/replay, fixtures, redaction, onboarding and dashboard ([raw summaries](evidence/r1-key-rotation/browser.txt)). Screenshots contain synthetic captures and injected replay outcomes only. Mobile layouts were checked at 320/390/1440 px; visual review here is agent review, not independent human acceptance.
 - [10-second seeded workload smoke](evidence/r1-key-rotation/endurance-smoke.json) passed, including exact retained IDs, masking, 429 rejection and stopped-writer reopen. It validates the harness and **does not** count as the 30-minute endurance gate.
 - Fault tests kill a child during partial temporary write, after file fsync and after rename; inject directory-fsync failure; and fail commits before validation/send and after transport. Recovery authenticates a complete generation, preserves stale-lock handling and does not retry replay.

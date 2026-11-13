@@ -2,717 +2,717 @@ TAP version 13
 # Subtest: alerts cover recovery, retained capacity, unknown delivery and fixed counter deltas without secrets
 ok 1 - alerts cover recovery, retained capacity, unknown delivery and fixed counter deltas without secrets
   ---
-  duration_ms: 1.569542
+  duration_ms: 17.87725
   ...
 # Subtest: local alert probe authenticates, rejects remote URLs before fetch and never follows redirects
 ok 2 - local alert probe authenticates, rejects remote URLs before fetch and never follows redirects
   ---
-  duration_ms: 101.68775
+  duration_ms: 1053.398417
   ...
 # Subtest: empty analytics has zero counts and missing latency, not fabricated values
 ok 3 - empty analytics has zero counts and missing latency, not fabricated values
   ---
-  duration_ms: 0.7875
+  duration_ms: 17.576292
   ...
 # Subtest: capture and attempt windows use their own timestamps and exact boundaries
 ok 4 - capture and attempt windows use their own timestamps and exact boundaries
   ---
-  duration_ms: 1.201042
+  duration_ms: 14.732667
   ...
 # Subtest: each outcome remains distinct and HTTP status is not business success
 ok 5 - each outcome remains distinct and HTTP status is not business success
   ---
-  duration_ms: 0.506042
+  duration_ms: 338.060917
   ...
 # Subtest: median uses recorded response durations only, including zero
 ok 6 - median uses recorded response durations only, including zero
   ---
-  duration_ms: 1.649208
+  duration_ms: 11.707709
   ...
 # Subtest: history is newest first, filterable by event, attempt and destination, without mutation
 ok 7 - history is newest first, filterable by event, attempt and destination, without mutation
   ---
-  duration_ms: 0.922
+  duration_ms: 41.222
   ...
 # Subtest: deleted or capped records cannot contribute phantom totals
 ok 8 - deleted or capped records cannot contribute phantom totals
   ---
-  duration_ms: 0.708625
+  duration_ms: 4.10575
   ...
 # Subtest: real scoped API denies mutations/readback before body parsing and cannot replay admin nonce
 ok 9 - real scoped API denies mutations/readback before body parsing and cannot replay admin nonce
   ---
-  duration_ms: 130.234375
+  duration_ms: 1048.370541
   ...
 # Subtest: capture budget cannot exhaust independent admin/read request budgets
 ok 10 - capture budget cannot exhaust independent admin/read request budgets
   ---
-  duration_ms: 369.829542
+  duration_ms: 5378.331833
   ...
 # Subtest: new server credential snapshot revokes prior scoped key without affecting independent reader
 ok 11 - new server credential snapshot revokes prior scoped key without affecting independent reader
   ---
-  duration_ms: 40.524458
+  duration_ms: 20.247709
   ...
 # Subtest: scoped auth uses exact bearer and returns no token/digest
 ok 12 - scoped auth uses exact bearer and returns no token/digest
   ---
-  duration_ms: 7.599292
+  duration_ms: 167.212625
   ...
 # Subtest: capture can append only; read cannot mutate or prepare/send
 ok 13 - capture can append only; read cannot mutate or prepare/send
   ---
-  duration_ms: 0.568125
+  duration_ms: 0.968083
   ...
 # Subtest: credential config fails closed without echoing secrets
 ok 14 - credential config fails closed without echoing secrets
   ---
-  duration_ms: 0.543958
+  duration_ms: 7.614833
   ...
 # Subtest: private file loading and restart rotation reject old credentials
 ok 15 - private file loading and restart rotation reject old credentials
   ---
-  duration_ms: 9.172958
+  duration_ms: 29.230625
   ...
 # Subtest: credential FIFO is rejected without waiting for a writer
 ok 16 - credential FIFO is rejected without waiting for a writer
   ---
-  duration_ms: 17.967333
+  duration_ms: 97.71175
   ...
 # Subtest: version matches package and build identifies actual runtime contents without Git
 ok 17 - version matches package and build identifies actual runtime contents without Git
   ---
-  duration_ms: 29.279
+  duration_ms: 42.314958
   ...
 # Subtest: missing or malformed metadata uses explicit non-fabricated fallback
 ok 18 - missing or malformed metadata uses explicit non-fabricated fallback
   ---
-  duration_ms: 2.535166
+  duration_ms: 5.6695
   ...
 # Subtest: HTML exposes accurate version/build before login without unresolved placeholders
 ok 19 - HTML exposes accurate version/build before login without unresolved placeholders
   ---
-  duration_ms: 56.034125
+  duration_ms: 598.839833
   ...
 # Subtest: public abuse budget is bounded and does not consume authenticated request budget
 ok 20 - public abuse budget is bounded and does not consume authenticated request budget
   ---
-  duration_ms: 1334.571625
+  duration_ms: 15431.316292
   ...
 # Subtest: authenticated rate limit fails closed and recovers only after its window
 ok 21 - authenticated rate limit fails closed and recovers only after its window
   ---
-  duration_ms: 360.309917
+  duration_ms: 1522.594792
   ...
 # Subtest: 200 event capacity rejects overflow without eviction or silent overwrite
 ok 22 - 200 event capacity rejects overflow without eviction or silent overwrite
   ---
-  duration_ms: 494.141125
+  duration_ms: 1733.057042
   ...
 # Subtest: bounded 32 concurrent captures retain distinct records and expose no shared credentials
 ok 23 - bounded 32 concurrent captures retain distinct records and expose no shared credentials
   ---
-  duration_ms: 69.865083
+  duration_ms: 123.288458
   ...
 # Subtest: collections have deterministic hashes, strict names/count/shape and validate every fixture
 ok 24 - collections have deterministic hashes, strict names/count/shape and validate every fixture
   ---
-  duration_ms: 9.415917
+  duration_ms: 5.793416
   ...
 # Subtest: collection preview does not store; invalid entries and insufficient capacity never partially import
 ok 25 - collection preview does not store; invalid entries and insufficient capacity never partially import
   ---
-  duration_ms: 135.698916
+  duration_ms: 191.290209
   ...
 # Subtest: CI verification is offline and replay requires explicit entry, target, confirmation and token
 ok 26 - CI verification is offline and replay requires explicit entry, target, confirmation and token
   ---
-  duration_ms: 736.864917
+  duration_ms: 6351.932083
   ...
 # Subtest: CLI unknown delivery exits nonzero without retry
 ok 27 - CLI unknown delivery exits nonzero without retry
   ---
-  duration_ms: 280.468208
+  duration_ms: 3203.629291
   ...
 # Subtest: doctor reports shape without echoing secret values, paths or destination URLs
 ok 28 - doctor reports shape without echoing secret values, paths or destination URLs
   ---
-  duration_ms: 5.371208
+  duration_ms: 182.987125
   ...
 # Subtest: doctor fails invalid configuration and describes absent defaults honestly
 ok 29 - doctor fails invalid configuration and describes absent defaults honestly
   ---
-  duration_ms: 0.65575
+  duration_ms: 2.624125
   ...
 # Subtest: doctor reads bounded owner-only files, rejects permissive or symbolic files, and never writes
 ok 30 - doctor reads bounded owner-only files, rejects permissive or symbolic files, and never writes
   ---
-  duration_ms: 9.858958
+  duration_ms: 17.464833
   ...
 # Subtest: doctor validates scoped auth using runtime policy without disclosing file or tokens
 ok 31 - doctor validates scoped auth using runtime policy without disclosing file or tokens
   ---
-  duration_ms: 11.391292
+  duration_ms: 4.50475
   ...
 # Subtest: doctor admin token validation matches scoped-auth runtime bounds
 ok 32 - doctor admin token validation matches scoped-auth runtime bounds
   ---
-  duration_ms: 0.669458
+  duration_ms: 0.19275
   ...
 # Subtest: doctor validates bounded redaction rules without revealing paths or rule names
 ok 33 - doctor validates bounded redaction rules without revealing paths or rule names
   ---
-  duration_ms: 7.352667
+  duration_ms: 8.080375
   ...
 # Subtest: doctor Stripe configuration mirrors runtime prerequisites without disclosing secrets or paths
 ok 34 - doctor Stripe configuration mirrors runtime prerequisites without disclosing secrets or paths
   ---
-  duration_ms: 8.885417
+  duration_ms: 16.596542
   ...
 # Subtest: fixture import rejects versions, hashes, scalar payloads and executable metadata
 ok 35 - fixture import rejects versions, hashes, scalar payloads and executable metadata
   ---
-  duration_ms: 5.715042
+  duration_ms: 3.67125
   ...
 # Subtest: fixture validation sanitizes again and preserves own prototype-named keys
 ok 36 - fixture validation sanitizes again and preserves own prototype-named keys
   ---
-  duration_ms: 1.240042
+  duration_ms: 0.254625
   ...
 # Subtest: preview is read-only; confirmed import round-trips and never sends
 ok 37 - preview is read-only; confirmed import round-trips and never sends
   ---
-  duration_ms: 147.410416
+  duration_ms: 809.221667
   ...
 # Subtest: redaction handles long strings and adversarial at-sign sequences without quadratic search
 ok 38 - redaction handles long strings and adversarial at-sign sequences without quadratic search
   ---
-  duration_ms: 4.687541
+  duration_ms: 5.386916
   ...
 # Subtest: encrypted snapshot backup restores into an isolated directory and failed startup releases its own lock
 ok 39 - encrypted snapshot backup restores into an isolated directory and failed startup releases its own lock
   ---
-  duration_ms: 115.360833
+  duration_ms: 679.297458
   ...
 # Subtest: malformed restored states fail before listening and release the store
 ok 40 - malformed restored states fail before listening and release the store
   ---
-  duration_ms: 0.989416
+  duration_ms: 0.616875
   ...
 # Subtest: redaction expansion cannot silently exceed the per-event storage bound
 ok 41 - redaction expansion cannot silently exceed the per-event storage bound
   ---
-  duration_ms: 43.663292
+  duration_ms: 345.834333
   ...
 # Subtest: loaded-image profile mirrors hardened persistent profile except image source
 ok 42 - loaded-image profile mirrors hardened persistent profile except image source
   ---
-  duration_ms: 0.565208
+  duration_ms: 1.263875
   ...
 # Subtest: loaded-image profile cannot build or pull implicitly and preserves private lifecycle
 ok 43 - loaded-image profile cannot build or pull implicitly and preserves private lifecycle
   ---
-  duration_ms: 2.020125
+  duration_ms: 8.097583
   ...
 # Subtest: receipt binds raw payload; conflict and same-payload dedup survive restart
 ok 44 - receipt binds raw payload; conflict and same-payload dedup survive restart
   ---
-  duration_ms: 80.679458
+  duration_ms: 928.2085
   ...
 # Subtest: legacy receipt blocks unknown equivalence and malformed hashes fail startup
 ok 45 - legacy receipt blocks unknown equivalence and malformed hashes fail startup
   ---
-  duration_ms: 12.768084
+  duration_ms: 497.790583
   ...
 # Subtest: exclusive freshness boundaries and receipt outlives maximum signature window
 ok 46 - exclusive freshness boundaries and receipt outlives maximum signature window
   ---
-  duration_ms: 34.706709
+  duration_ms: 423.109583
   ...
 # Subtest: unsigned slow body rejected before completion
 ok 47 - unsigned slow body rejected before completion
   ---
-  duration_ms: 15.358375
+  duration_ms: 25.676291
   ...
 # Subtest: bounded signed-header slow bodies do not block admin and released slots recover
 ok 48 - bounded signed-header slow bodies do not block admin and released slots recover
   ---
-  duration_ms: 169.870542
+  duration_ms: 1523.479
   ...
 # Subtest: rollback drops only hash evidence: old tuple shape stays readable and reupgrade fails conservatively
 ok 49 - rollback drops only hash evidence: old tuple shape stays readable and reupgrade fails conservatively
   ---
-  duration_ms: 11.924291
+  duration_ms: 249.920625
   ...
 # Subtest: IPv6 ordinary global unicast accepts equivalent canonical representations
 ok 50 - IPv6 ordinary global unicast accepts equivalent canonical representations
   ---
-  duration_ms: 6.418542
+  duration_ms: 548.915708
   ...
 # Subtest: IPv6 special-purpose, mapped, transition, scope and malformed addresses fail closed
 ok 51 - IPv6 special-purpose, mapped, transition, scope and malformed addresses fail closed
   ---
-  duration_ms: 1.563166
+  duration_ms: 3.058916
   ...
 # Subtest: DNS validates all families before preferring public IPv4 and pins IPv6-only answer
 ok 52 - DNS validates all families before preferring public IPv4 and pins IPv6-only answer
   ---
-  duration_ms: 0.932417
+  duration_ms: 2.764709
   ...
 # Subtest: IPv6 transport pins exact address and family without changing TLS hostname or resolving again
 ok 53 - IPv6 transport pins exact address and family without changing TLS hostname or resolving again
   ---
-  duration_ms: 2.357917
+  duration_ms: 10.442625
   ...
 # Subtest: IPv6 literal URLs are rejected even when operator allowlisted
 ok 54 - IPv6 literal URLs are rejected even when operator allowlisted
   ---
-  duration_ms: 0.255625
+  duration_ms: 0.547334
   ...
 # Subtest: IPv6 conservative CIDR boundaries
 ok 55 - IPv6 conservative CIDR boundaries
   ---
-  duration_ms: 0.146625
+  duration_ms: 0.217
   ...
 # Subtest: offline rotation preserves original bytes, receipts and uncertain attempts; new key boots
 ok 56 - offline rotation preserves original bytes, receipts and uncertain attempts; new key boots
   ---
-  duration_ms: 113.567292
+  duration_ms: 520.770584
   ...
 # Subtest: rotation refuses live/stale locks, wrong key, in-place paths and existing/symlink destinations
 ok 57 - rotation refuses live/stale locks, wrong key, in-place paths and existing/symlink destinations
   ---
-  duration_ms: 50.598125
+  duration_ms: 406.503375
   ...
 # Subtest: invalid snapshot and CLI failure do not disclose data or secrets
 ok 58 - invalid snapshot and CLI failure do not disclose data or secrets
   ---
-  duration_ms: 152.864
+  duration_ms: 2814.279084
   ...
 # Subtest: Kubernetes package is private single-writer persistent deployment with no embedded secrets
 ok 59 - Kubernetes package is private single-writer persistent deployment with no embedded secrets
   ---
-  duration_ms: 4.574042
+  duration_ms: 35.202792
   ...
 # Subtest: Kubernetes rendering refuses mutable/placeholder image before any cluster operation
 ok 60 - Kubernetes rendering refuses mutable/placeholder image before any cluster operation
   ---
-  duration_ms: 0.623625
+  duration_ms: 21.957167
   ...
 # Subtest: Kubernetes init copies valid crypto-generated secrets to owned private files and is idempotent
 ok 61 - Kubernetes init copies valid crypto-generated secrets to owned private files and is idempotent
   ---
-  duration_ms: 25.792583
+  duration_ms: 687.939333
   ...
 # Subtest: Kubernetes init rejects invalid token before writing its copy
 ok 62 - Kubernetes init rejects invalid token before writing its copy
   ---
-  duration_ms: 48.133916
+  duration_ms: 243.474875
   ...
 # Subtest: nested secrets and email addresses are sanitized
 ok 63 - nested secrets and email addresses are sanitized
   ---
-  duration_ms: 4.086958
+  duration_ms: 4.302458
   ...
 # Subtest: special address ranges and IPv6 fail closed
 ok 64 - special address ranges and IPv6 fail closed
   ---
-  duration_ms: 8.356542
+  duration_ms: 9.327792
   ...
 # Subtest: only exact approved HTTPS URL permitted
 ok 65 - only exact approved HTTPS URL permitted
   ---
-  duration_ms: 0.933959
+  duration_ms: 0.4345
   ...
 # Subtest: DNS validates every answer, pins public address, rejects mixed/private answers
 ok 66 - DNS validates every answer, pins public address, rejects mixed/private answers
   ---
-  duration_ms: 2.596542
+  duration_ms: 3.706166
   ...
 # Subtest: comparison handles nested changes
 ok 67 - comparison handles nested changes
   ---
-  duration_ms: 0.67675
+  duration_ms: 0.4065
   ...
 # Subtest: private capture, sanitized export, diff and deletion
 ok 68 - private capture, sanitized export, diff and deletion
   ---
-  duration_ms: 95.875375
+  duration_ms: 2443.538584
   ...
 # Subtest: confirmed single-use replay calls injected transport once with sanitized payload
 ok 69 - confirmed single-use replay calls injected transport once with sanitized payload
   ---
-  duration_ms: 22.447375
+  duration_ms: 546.346834
   ...
 # Subtest: expired confirmation and retention prevent replay
 ok 70 - expired confirmation and retention prevent replay
   ---
-  duration_ms: 13.868292
+  duration_ms: 90.134667
   ...
 # Subtest: DNS denial blocks transmission and consumed approval cannot retry
 ok 71 - DNS denial blocks transmission and consumed approval cannot retry
   ---
-  duration_ms: 21.182333
+  duration_ms: 16.45125
   ...
 # Subtest: transport errors are unknown-delivery, never auto-retried
 ok 72 - transport errors are unknown-delivery, never auto-retried
   ---
-  duration_ms: 48.716959
+  duration_ms: 29.9375
   ...
 # Subtest: transport pins DNS, preserves TLS hostname, and does not follow redirects
 ok 73 - transport pins DNS, preserves TLS hostname, and does not follow redirects
   ---
-  duration_ms: 3.308875
+  duration_ms: 109.407542
   ...
 # Subtest: event capacity and rate limits are enforced
 ok 74 - event capacity and rate limits are enforced
   ---
-  duration_ms: 691.029625
+  duration_ms: 9670.264125
   ...
 # Subtest: payload and pending-confirmation limits fail closed
 ok 75 - payload and pending-confirmation limits fail closed
   ---
-  duration_ms: 400.791958
+  duration_ms: 1347.225417
   ...
 # Subtest: capture preserves UTF-8 when a character spans network chunks
 ok 76 - capture preserves UTF-8 when a character spans network chunks
   ---
-  duration_ms: 29.052583
+  duration_ms: 202.548375
   ...
 # Subtest: obvious credential and financial key variants are redacted without masking shipping
 ok 77 - obvious credential and financial key variants are redacted without masking shipping
   ---
-  duration_ms: 4.37925
+  duration_ms: 0.849417
   ...
 # Subtest: capture rejects a request larger than 64 KB with 413
 ok 78 - capture rejects a request larger than 64 KB with 413
   ---
-  duration_ms: 14.040084
+  duration_ms: 20.647958
   ...
 # Subtest: confirmation expiring while POST body is arriving cannot send
 ok 79 - confirmation expiring while POST body is arriving cannot send
   ---
-  duration_ms: 16.818625
+  duration_ms: 25.505042
   ...
 # Subtest: diagnostics require admin and expose bounded real counts without payloads/targets
 ok 80 - diagnostics require admin and expose bounded real counts without payloads/targets
   ---
-  duration_ms: 102.180792
+  duration_ms: 1385.086459
   ...
 # Subtest: operational counters use fixed buckets and count finish/abort exactly once
 ok 81 - operational counters use fixed buckets and count finish/abort exactly once
   ---
-  duration_ms: 3.289625
+  duration_ms: 3.469333
   ...
 # Subtest: diagnostics expose counts, never user values, and returned snapshots cannot mutate counters
 ok 82 - diagnostics expose counts, never user values, and returned snapshots cannot mutate counters
   ---
-  duration_ms: 0.5615
+  duration_ms: 1.202292
   ...
 # Subtest: diagnostic traversal is bounded and retained counts can fall without rewriting lifetime counts
 ok 83 - diagnostic traversal is bounded and retained counts can fall without rewriting lifetime counts
   ---
-  duration_ms: 5.530709
+  duration_ms: 249.391041
   ...
 # Subtest: signed ingress requires persistence and separate key
 ok 84 - signed ingress requires persistence and separate key
   ---
-  duration_ms: 3.094292
+  duration_ms: 7.521791
   ...
 # Subtest: signed ingress sanitizes, authenticates, bounds freshness, deduplicates across restart
 ok 85 - signed ingress sanitizes, authenticates, bounds freshness, deduplicates across restart
   ---
-  duration_ms: 74.904167
+  duration_ms: 856.322625
   ...
 # Subtest: capture and delete persist; failed storage fails closed
 ok 86 - capture and delete persist; failed storage fails closed
   ---
-  duration_ms: 29.257375
+  duration_ms: 557.488625
   ...
 # Subtest: restart converts unfinished sends to unknown and never retries
 ok 87 - restart converts unfinished sends to unknown and never retries
   ---
-  duration_ms: 9.202708
+  duration_ms: 36.846125
   ...
 # Subtest: sending state is durably saved before transport; failed write prevents send
 ok 88 - sending state is durably saved before transport; failed write prevents send
   ---
-  duration_ms: 28.315791
+  duration_ms: 253.739375
   ...
 # Subtest: DNS lookup is bounded even when resolver never completes
 ok 89 - DNS lookup is bounded even when resolver never completes
   ---
-  duration_ms: 18.224375
+  duration_ms: 37.051708
   ...
 # Subtest: comparison treats prototype names as own keys and distinguishes missing from null
 ok 90 - comparison treats prototype names as own keys and distinguishes missing from null
   ---
-  duration_ms: 0.758959
+  duration_ms: 41.481917
   ...
 # Subtest: expiry persists deletion and invalid JSON shape is rejected
 ok 91 - expiry persists deletion and invalid JSON shape is rejected
   ---
-  duration_ms: 13.204625
+  duration_ms: 472.741875
   ...
 # Subtest: active replay cannot be deleted during DNS and remains durably recorded
 ok 92 - active replay cannot be deleted during DNS and remains durably recorded
   ---
-  duration_ms: 21.441041
+  duration_ms: 274.795875
   ...
 # Subtest: unauthenticated ingress flood does not consume the private admin budget
 ok 93 - unauthenticated ingress flood does not consume the private admin budget
   ---
-  duration_ms: 1254.000625
+  duration_ms: 9889.200833
   ...
 # Subtest: Stripe signature authenticates raw UTF-8 bytes with literal whsec secret
 ok 94 - Stripe signature authenticates raw UTF-8 bytes with literal whsec secret
   ---
-  duration_ms: 7.058042
+  duration_ms: 8.634542
   ...
 # Subtest: multiple v1 signatures accept any matching entry without exposing match index
 ok 95 - multiple v1 signatures accept any matching entry without exposing match index
   ---
-  duration_ms: 14.905625
+  duration_ms: 2.116125
   ...
 # Subtest: Stripe timestamp fixed symmetric tolerance and strict canonical integer
 ok 96 - Stripe timestamp fixed symmetric tolerance and strict canonical integer
   ---
-  duration_ms: 3.9485
+  duration_ms: 1.898709
   ...
 # Subtest: duplicate physical headers, duplicate t and malformed signature fields fail closed
 ok 97 - duplicate physical headers, duplicate t and malformed signature fields fail closed
   ---
-  duration_ms: 1.385708
+  duration_ms: 0.453959
   ...
 # Subtest: bounded header, field/signature count and raw body limits
 ok 98 - bounded header, field/signature count and raw body limits
   ---
-  duration_ms: 1.523833
+  duration_ms: 1.636208
   ...
 # Subtest: verifier authenticates bytes, not JSON or Stripe test-mode authorization
 ok 99 - verifier authenticates bytes, not JSON or Stripe test-mode authorization
   ---
-  duration_ms: 0.113917
+  duration_ms: 0.598208
   ...
 # Subtest: failure returns no payload, key, header or detailed signature material
 ok 100 - failure returns no payload, key, header or detailed signature material
   ---
-  duration_ms: 0.6305
+  duration_ms: 4.4565
   ...
 # Subtest: crash/commit fault at partial-temp preserves an authenticated complete generation
 ok 101 - crash/commit fault at partial-temp preserves an authenticated complete generation
   ---
-  duration_ms: 145.184167
+  duration_ms: 332.173125
   ...
 # Subtest: crash/commit fault at synced-temp preserves an authenticated complete generation
 ok 102 - crash/commit fault at synced-temp preserves an authenticated complete generation
   ---
-  duration_ms: 138.025375
+  duration_ms: 696.451833
   ...
 # Subtest: crash/commit fault at renamed preserves an authenticated complete generation
 ok 103 - crash/commit fault at renamed preserves an authenticated complete generation
   ---
-  duration_ms: 195.065083
+  duration_ms: 424.916542
   ...
 # Subtest: crash/commit fault at directory-sync-error preserves an authenticated complete generation
 ok 104 - crash/commit fault at directory-sync-error preserves an authenticated complete generation
   ---
-  duration_ms: 145.928875
+  duration_ms: 1541.34525
   ...
 # Subtest: replay commit failure 2 fails closed and restart recovers durable outcome
 ok 105 - replay commit failure 2 fails closed and restart recovers durable outcome
   ---
-  duration_ms: 143.115542
+  duration_ms: 1457.326375
   ...
 # Subtest: replay commit failure 3 fails closed and restart recovers durable outcome
 ok 106 - replay commit failure 3 fails closed and restart recovers durable outcome
   ---
-  duration_ms: 31.198541
+  duration_ms: 190.378958
   ...
 # Subtest: replay commit failure 4 fails closed and restart recovers durable outcome
 ok 107 - replay commit failure 4 fails closed and restart recovers durable outcome
   ---
-  duration_ms: 26.906917
+  duration_ms: 348.263416
   ...
 # Subtest: redaction migration preserves source and dedup metadata, removes historical metadata, boots stricter policy
 ok 108 - redaction migration preserves source and dedup metadata, removes historical metadata, boots stricter policy
   ---
-  duration_ms: 142.804334
+  duration_ms: 182.909667
   ...
 # Subtest: invalid policy, wrong key, existing destination and active writers leave source unchanged
 ok 109 - invalid policy, wrong key, existing destination and active writers leave source unchanged
   ---
-  duration_ms: 124.216875
+  duration_ms: 532.110583
   ...
 # Subtest: custom redaction is additive, immutable, own-property-only and supports arrays
 ok 110 - custom redaction is additive, immutable, own-property-only and supports arrays
   ---
-  duration_ms: 5.491083
+  duration_ms: 27.478833
   ...
 # Subtest: redaction rules reject expressions, recursion, malformed paths and excess complexity
 ok 111 - redaction rules reject expressions, recursion, malformed paths and excess complexity
   ---
-  duration_ms: 1.557708
+  duration_ms: 8.415166
   ...
 # Subtest: preview stores nothing, capture/import enforce same custom policy and hashes
 ok 112 - preview stores nothing, capture/import enforce same custom policy and hashes
   ---
-  duration_ms: 65.586041
+  duration_ms: 1016.637416
   ...
 # Subtest: stricter rules cannot expose retained unsanitized state after restart
 ok 113 - stricter rules cannot expose retained unsanitized state after restart
   ---
-  duration_ms: 0.974042
+  duration_ms: 2.322833
   ...
 # Subtest: array metadata is never rewritten but object fields called length are supported
 ok 114 - array metadata is never rewritten but object fields called length are supported
   ---
-  duration_ms: 0.215208
+  duration_ms: 2.868833
   ...
 # Subtest: collection imports use configured redaction and require sanitized collection hash
 ok 115 - collection imports use configured redaction and require sanitized collection hash
   ---
-  duration_ms: 33.934333
+  duration_ms: 498.398
   ...
 # Subtest: signed ingress applies custom policy before persistence
 ok 116 - signed ingress applies custom policy before persistence
   ---
-  duration_ms: 12.318375
+  duration_ms: 485.813958
   ...
 # Subtest: redaction configuration file loader rejects symlinks, malformed and oversized files
 ok 117 - redaction configuration file loader rejects symlinks, malformed and oversized files
   ---
-  duration_ms: 11.705416
+  duration_ms: 28.065542
   ...
 # Subtest: common secret sources reject empty/conflicting/oversized values with explicit disabled ingress exception
 ok 118 - common secret sources reject empty/conflicting/oversized values with explicit disabled ingress exception
   ---
-  duration_ms: 1.642584
+  duration_ms: 29.49625
   ...
 # Subtest: shared file loader rejects FIFO links modes directories invalidUTF8 empty and oversized without secretpath leakage
 ok 119 - shared file loader rejects FIFO links modes directories invalidUTF8 empty and oversized without secretpath leakage
   ---
-  duration_ms: 79.170917
+  duration_ms: 167.720333
   ...
 # Subtest: secret file ownership is enforced using actual opened descriptor metadata
 ok 120 - secret file ownership is enforced using actual opened descriptor metadata
   ---
-  duration_ms: 4.557
+  duration_ms: 8.237
   ...
 # Subtest: doctor and runtime agree on conflicting/unsafe common secret sources without disclosing values
 ok 121 - doctor and runtime agree on conflicting/unsafe common secret sources without disclosing values
   ---
-  duration_ms: 0.997375
+  duration_ms: 2.919917
   ...
 # Subtest: encrypted snapshots survive restart, overwrite atomically and never store plaintext
 ok 122 - encrypted snapshots survive restart, overwrite atomically and never store plaintext
   ---
-  duration_ms: 117.3415
+  duration_ms: 115.732958
   ...
 # Subtest: wrong keys and ciphertext tampering fail closed
 ok 123 - wrong keys and ciphertext tampering fail closed
   ---
-  duration_ms: 61.916916
+  duration_ms: 62.34025
   ...
 # Subtest: exclusive lock blocks second writers and stale locks require operator removal
 ok 124 - exclusive lock blocks second writers and stale locks require operator removal
   ---
-  duration_ms: 29.427375
+  duration_ms: 94.038667
   ...
 # Subtest: symlink and nonregular destinations are rejected without modifying targets
 ok 125 - symlink and nonregular destinations are rejected without modifying targets
   ---
-  duration_ms: 23.811333
+  duration_ms: 20.311
   ...
 # Subtest: insecure existing file and writable shared directory are rejected
 ok 126 - insecure existing file and writable shared directory are rejected
   ---
-  duration_ms: 17.846583
+  duration_ms: 7.205291
   ...
 # Subtest: bounded load rejects oversized and truncated files; oversized save preserves old state
 ok 127 - bounded load rejects oversized and truncated files; oversized save preserves old state
   ---
-  duration_ms: 220.316667
+  duration_ms: 2686.616041
   ...
 # Subtest: failed commit poisons further operations and leaves no partial temporary file
 ok 128 - failed commit poisons further operations and leaves no partial temporary file
   ---
-  duration_ms: 27.2045
+  duration_ms: 95.829584
   ...
 # Subtest: invalid encryption settings fail before creating locks
 ok 129 - invalid encryption settings fail before creating locks
   ---
-  duration_ms: 1.618792
+  duration_ms: 1.169
   ...
 # Subtest: symlink lock is not followed or removed
 ok 130 - symlink lock is not followed or removed
   ---
-  duration_ms: 4.9875
+  duration_ms: 14.12075
   ...
 # Subtest: fresh snapshots use different IVs for identical content
 ok 131 - fresh snapshots use different IVs for identical content
   ---
-  duration_ms: 48.701084
+  duration_ms: 168.44775
   ...
 # Subtest: Stripe route disabled by default and requires persistent store
 ok 132 - Stripe route disabled by default and requires persistent store
   ---
-  duration_ms: 57.2495
+  duration_ms: 794.190417
   ...
 # Subtest: Stripe authenticates before parsing, rejects live/invalidschema and accepts sanitized test event
 ok 133 - Stripe authenticates before parsing, rejects live/invalidschema and accepts sanitized test event
   ---
-  duration_ms: 70.722292
+  duration_ms: 2098.888875
   ...
 # Subtest: Stripe dedup/conflict persists and generic ID namespace cannot suppress Stripe event
 ok 134 - Stripe dedup/conflict persists and generic ID namespace cannot suppress Stripe event
   ---
-  duration_ms: 41.747458
+  duration_ms: 215.753167
   ...
 # Subtest: duplicate physical Stripe headers rejected even if combined value contains valid signature
 ok 135 - duplicate physical Stripe headers rejected even if combined value contains valid signature
   ---
-  duration_ms: 11.992041
+  duration_ms: 399.172375
   ...
 # Subtest: Stripe shared signed budget remains bounded; failures cannot acknowledge persistence
 ok 136 - Stripe shared signed budget remains bounded; failures cannot acknowledge persistence
   ---
-  duration_ms: 507.351708
+  duration_ms: 5426.401875
   ...
 # Subtest: Stripe captures persist only sanitized content in actual encrypted store
 ok 137 - Stripe captures persist only sanitized content in actual encrypted store
   ---
-  duration_ms: 33.463542
+  duration_ms: 167.077333
   ...
 # Subtest: cross-provider receipt probes never become a successful duplicate, including after rollback metadata loss
 ok 138 - cross-provider receipt probes never become a successful duplicate, including after rollback metadata loss
   ---
-  duration_ms: 25.529125
+  duration_ms: 254.3175
   ...
 # Subtest: Stripe-only service reports enabled ingress without leaking its secret
 ok 139 - Stripe-only service reports enabled ingress without leaking its secret
   ---
-  duration_ms: 13.327458
+  duration_ms: 12.23375
   ...
 # Subtest: Stripe secret source exclusive and private bounded files fail closed without content/path leakage
 ok 140 - Stripe secret source exclusive and private bounded files fail closed without content/path leakage
   ---
-  duration_ms: 40.314291
+  duration_ms: 267.879083
   ...
 # Subtest: real TLS replay sends only sanitized JSON and persisted attempt correlation through private API
 ok 141 - real TLS replay sends only sanitized JSON and persisted attempt correlation through private API
   ---
-  duration_ms: 546.756208
+  duration_ms: 4388.593708
   ...
 # Subtest: real TLS redirects, certificate checks, body cap, disconnect and timeout fail safely
 ok 142 - real TLS redirects, certificate checks, body cap, disconnect and timeout fail safely
   ---
-  duration_ms: 5787.902333
+  duration_ms: 8431.302125
   ...
 # Subtest: real IPv6 socket pins address while validating TLS hostname and attempt correlation
 ok 143 - real IPv6 socket pins address while validating TLS hostname and attempt correlation
   ---
-  duration_ms: 626.161
+  duration_ms: 613.108791
   ...
 1..143
 # tests 143
@@ -722,4 +722,4 @@ ok 143 - real IPv6 socket pins address while validating TLS hostname and attempt
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 8351.61125
+# duration_ms 27891.748208

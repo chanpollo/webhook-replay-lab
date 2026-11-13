@@ -6,11 +6,12 @@ import {join} from 'node:path';
 import {performance} from 'node:perf_hooks';
 import {createLab} from '../src/server.js';
 import {createStore,MAX_STORE_BYTES} from '../src/store.js';
+import {readBuildInfo} from '../src/build-info.js';
 const seconds=Number(process.env.LAB_ENDURANCE_SECONDS||1800);
 assert.ok(Number.isInteger(seconds)&&seconds>=10&&seconds<=1800,'Duration must be 10–1800 seconds');
 const directory=realpathSync(mkdtempSync(join(tmpdir(),'hook-endurance-'))),path=join(directory,'inbox.enc');
 const token='synthetic-endurance-admin-token-000000',key='ab'.repeat(32);
-const reference={node:process.versions.node,platform:platform(),arch:arch(),cpuModel:cpus()[0]?.model,cpuCount:cpus().length,hostMemoryBytes:totalmem(),durationSeconds:seconds,latencyBudgetP95Ms:250,limits:{events:200,payloadBytes:65536,requestsPerCredentialPerMinute:120},workload:'20 initial retained events. One request/second; 10-step mix: 2 captures, 2 deletes, 5 reads, 1 bad-signature rejection. 1 KB synthetic field. Final burst: 150 reads at concurrency 8. No outbound replay. CPU/RSS include local driver and service.'};
+const reference={runtime:readBuildInfo(),sourceCommit:/^[a-f0-9]{40}$/.test(process.env.GITHUB_SHA||'')?process.env.GITHUB_SHA:null,node:process.versions.node,platform:platform(),arch:arch(),cpuModel:cpus()[0]?.model,cpuCount:cpus().length,hostMemoryBytes:totalmem(),durationSeconds:seconds,latencyBudgetP95Ms:250,limits:{events:200,payloadBytes:65536,requestsPerCredentialPerMinute:120},workload:'20 initial retained events. One request/second; 10-step mix: 2 captures, 2 deletes, 5 reads, 1 bad-signature rejection. 1 KB synthetic field. Final burst: 150 reads at concurrency 8. No outbound replay. CPU/RSS include local driver and service.'};
 console.log(JSON.stringify({reference}));
 const start=performance.now(),cpuStart=process.cpuUsage(),samples=[],expected=new Set();
 let maxRss=0,maxDisk=0,server,base;
@@ -38,7 +39,7 @@ try{
  await new Promise(resolve=>setTimeout(resolve,Math.max(0,seconds*1000-(performance.now()-start))));sample();
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));server=null;
  const restored=createStore({path,key});const state=restored.load();assert.deepEqual(new Set(state.events.map(e=>e.id)),expected);restored.close();
- const summary={};for(const [phase,s] of Object.entries(stats)){const sorted=s.latencies.sort((a,b)=>a-b),percent=p=>sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))]??null;summary[phase]={requests:s.count,statuses:s.statuses,p50Ms:percent(.5),p95Ms:percent(.95)};}
+ const summary={};for(const [phase,s] of Object.entries(stats)){const sorted=s.latencies.sort((a,b)=>a-b),percent=p=>sorted[Math.min(sorted.length-1,Math.floor(sorted.length*p))]??null;summary[phase]={requests:s.count,statuses:s.statuses,http5xxRate:Object.entries(s.statuses).filter(([status])=>Number(status)>=500).reduce((total,[,count])=>total+count,0)/s.count,throttledRate:(s.statuses[429]||0)/s.count,expectedAuthRejectionRate:(s.statuses[401]||0)/s.count,p50Ms:percent(.5),p95Ms:percent(.95)};}
  assert.ok(summary.steady.p95Ms<=reference.latencyBudgetP95Ms,'Steady p95 exceeds predeclared 250 ms local budget');
  const cpu=process.cpuUsage(cpuStart);result={ok:true,reference,elapsedSeconds:(performance.now()-start)/1000,summary,maxRssBytes:maxRss,maxSnapshotBytes:maxDisk,cpuMicroseconds:cpu,samples,retainedEvents:expected.size,files:readdirSync(directory).length,limitations:['Synthetic single-process service and driver; not a customer SLA, replay-network benchmark or DDoS test.','Short runs validate the harness only; full acceptance requires durationSeconds=1800.']};
  console.log(JSON.stringify(result));

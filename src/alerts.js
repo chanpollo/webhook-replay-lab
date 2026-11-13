@@ -10,14 +10,16 @@ const actions={
 };
 export function evaluateAlerts({diagnostics,previous=null,available=true}={}) {
  const alerts=[];const add=code=>alerts.push({code,action:actions[code]});
- if(!available||!diagnostics||diagnostics.schemaVersion!==1){add('service_unavailable');return {ok:false,alerts};}
+ const count=value=>Number.isSafeInteger(value)&&value>=0;
+ if(!available||!diagnostics||diagnostics.schemaVersion!==1||typeof diagnostics.storage?.healthy!=='boolean'||![diagnostics.uptimeSeconds,diagnostics.retained?.events,diagnostics.retained?.ingressReceipts,diagnostics.retained?.outcomes?.unknown,diagnostics.process?.signatureFailures,diagnostics.process?.requests?.statusClasses?.['5xx']].every(count)){add('service_unavailable');return {ok:false,alerts};}
  const d=diagnostics;
  if(!d.storage?.healthy)add('storage_unhealthy');
  if(d.retained?.events>=180)add('event_capacity');
  if(d.retained?.ingressReceipts>=1800)add('receipt_capacity');
  if(d.retained?.outcomes?.unknown>0)add('unknown_delivery');
  const delta=(value,old)=>Number.isSafeInteger(value)&&value>=0?value-(Number.isSafeInteger(old)&&old>=0&&old<=value?old:0):0;
- if(delta(d.process?.signatureFailures,previous?.process?.signatureFailures)>=10)add('signature_failures');
- if(delta(d.process?.requests?.statusClasses?.['5xx'],previous?.process?.requests?.statusClasses?.['5xx'])>0)add('server_errors');
+ const baseline=previous&&d.uptimeSeconds>=previous.uptimeSeconds?previous:null;
+ if(delta(d.process?.signatureFailures,baseline?.process?.signatureFailures)>=10)add('signature_failures');
+ if(delta(d.process?.requests?.statusClasses?.['5xx'],baseline?.process?.requests?.statusClasses?.['5xx'])>0)add('server_errors');
  return {ok:alerts.length===0,alerts};
 }

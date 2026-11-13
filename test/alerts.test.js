@@ -12,6 +12,9 @@ test('alerts cover recovery, retained capacity, unknown delivery and fixed count
  assert.equal(evaluateAlerts({diagnostics:m.snapshot(),previous:m.snapshot()}).ok,true);
  const reset=m.snapshot();reset.process.signatureFailures=2;assert.equal(evaluateAlerts({diagnostics:reset,previous:d}).ok,true);
  assert.deepEqual(evaluateAlerts({available:false}).alerts.map(a=>a.code),['service_unavailable']);
+ assert.deepEqual(evaluateAlerts({diagnostics:{schemaVersion:1,storage:{healthy:true}}}).alerts.map(a=>a.code),['service_unavailable']);
+ const oldService=m.snapshot();delete oldService.process.signatureFailures;assert.equal(evaluateAlerts({diagnostics:oldService}).ok,false);
+ const restarted=m.snapshot();restarted.uptimeSeconds=1;restarted.process.signatureFailures=15;const beforeRestart=m.snapshot();beforeRestart.uptimeSeconds=100;assert.equal(evaluateAlerts({diagnostics:restarted,previous:beforeRestart}).alerts.some(a=>a.code==='signature_failures'),true);
  const errors=m.snapshot();errors.process.requests.statusClasses['5xx']=1;assert.equal(evaluateAlerts({diagnostics:errors}).alerts.some(a=>a.code==='server_errors'),true);
 });
 test('local alert probe authenticates, rejects remote URLs before fetch and never follows redirects',async t=>{

@@ -31,7 +31,9 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 **Current:** core capture → redact → inspect → export/import → compare → explicit staging replay is implemented and technically exercised.
 
-**Remaining work:** task-based onboarding for first capture, preview, fixture portability and uncertain delivery; error messages with a next action; final desktop/mobile/accessibility review. Keep charts derived from real retained records and distinguish HTTP response from business success.
+**Engineering added:** a session-only task guide for preview/capture/export/import/compare, with explicit staging and unknown-delivery instructions; automated browser acceptance is separate from human task evidence.
+
+**Remaining work:** independent task validation for first capture, preview, fixture portability and uncertain delivery; error messages with a next action; final desktop/mobile/accessibility review. Keep charts derived from real retained records and distinguish HTTP response from business success.
 
 **Exit evidence:**
 - A fresh checkout completes the documented flow with no undocumented setup steps; attach exact build and test output.
@@ -58,7 +60,7 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 **Current:** encrypted bounded snapshots, expiry, scoped capture/read access, restart-based rotation and isolated backup/restore/upgrade/rollback are implemented. Credentials share one inbox; there is no tenant boundary. Stricter redaction rules fail startup on incompatible retained data.
 
-**Build/finish:** a documented retention/capacity contract; migration assistance for stricter redaction without silently destroying original data; recovery and credential-rotation diagnostics; a minimal redacted security-event record if pilot operators need an audit trail. Decide explicit audit retention/access before implementation. Encryption-key migration needs a dedicated, tested offline design, not replacing the key in place.
+**Build/finish:** a documented retention/capacity contract; [offline stricter-redaction migration](REDACTION_MIGRATION.md) now creates a verified copy while preserving the source, resetting labels and removing historical attempts from the copy; recovery and credential-rotation diagnostics; a minimal redacted security-event record if pilot operators need an audit trail. Decide explicit audit retention/access before implementation. An offline key-copy command now preserves the source, validates and reads back a separately encrypted destination; see [rotation](STORAGE_KEY_ROTATION.md). Local tests do not replace per-route cutover/rollback acceptance.
 
 **Exit evidence:** failure-injection tests for interrupted writes, wrong key, corrupt snapshot, stale/live locks and restart during replay; recovery preserves the documented outcome or fails closed. Old rotated tokens fail, unaffected principals still work and forbidden operations remain denied. Recovery instructions work on an empty authorized host without deleting the original volume. Document what exports/backups retain after expiry or deletion.
 
@@ -68,7 +70,7 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 **Current:** health endpoint, bounded records/requests and synthetic capacity/abuse regressions exist. These are not throughput, endurance or DDoS evidence.
 
-**Build:** secret-free operational metrics and actionable alerts for failed health, storage errors/capacity, repeated signature failures and unknown replay outcomes; installation diagnostics; supported runtime/image patch policy; an operator owner and response/runbook.
+**Build:** secret-free operational metrics now have a [local loopback alert probe](ALERTS.md) for service/storage errors/capacity, repeated signature failures and unknown replay outcomes; external notification delivery and an assigned responder remain operator acceptance; installation diagnostics; supported runtime/image patch policy; an operator owner and response/runbook.
 
 **Exit evidence:**
 - Declare the reference hardware, test dataset, configured limits and workload mix before measurement.
@@ -131,3 +133,7 @@ Related: [original plan](../PLAN.md), [product hypothesis](PRODUCT.md), [readine
 ## Latest engineering checkpoint
 
 Source `083ceed`, runtime `58f35f208f9b`: 129 tests and full image/proxy/security/disposable-kind CI passed; a checksummed amd64 image artifact exists. [Evidence](SELF_HOST_ACCEPTANCE.md). This closes the initial Docker/image and disposable Kubernetes execution checks, not customer CNI/CSI acceptance, real Stripe account delivery, public TLS validation for this build, human usability or formal publication.
+
+## Recovery/operations engineering follow-up
+
+See [current checkpoint](R1_RECOVERY_CHECKPOINT.md) for exact local/CI evidence and open gates. Offline migrations, local alerts and automated onboarding do not replace real receiver, human, Hostinger or approved publication acceptance.

@@ -2,6 +2,12 @@ import {activity, attemptsOf, filterAttempts, outcomeKey, outcomes} from './anal
 const $=id=>document.getElementById(id);
 let events=[],selected=null,approval=null,busy=false,session=0,reviewGeneration=0,snapshot=null,historyLimit=20;
 const json=value=>JSON.stringify(value,null,2);
+const guideSteps=new Map([['preview','Preview generated; review free text before capture.'],['capture','Event captured locally; inspect the sanitized payload.'],['export','Fixture prepared for download; review the file before sharing.'],['import','Reviewed fixture imported locally; no webhook sent.'],['compare','Payload comparison completed; inspect the reported differences.']]);
+const guideCompleted=new Set();
+function guideDone(step){guideCompleted.add(step);$('guide-'+step).textContent=guideSteps.get(step);$('guideProgress').textContent=guideCompleted.size+' of 5 session actions completed. Progress resets when the token changes or the page reloads.';}
+function resetGuide(){guideCompleted.clear();for(const [step,text] of guideInitial)$('guide-'+step).textContent=text;$('guideProgress').textContent='0 of 5 session actions completed. Progress resets when the token changes or the page reloads.';}
+const guideInitial=new Map([...guideSteps.keys()].map(step=>[step,$('guide-'+step).textContent]));
+$('startGuide').onclick=()=>{showView('workbench');$('payload').focus();};
 async function api(path,body){const startedSession=session;const response=await fetch('/api/'+path,{method:body?'POST':'GET',headers:{authorization:'Bearer '+$('token').value,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(startedSession!==session)throw Error('Token changed; unlock inbox to inspect any pending operation.');if(!response.ok){const error=Error(data.error);error.rejected=response.status<500;throw error;}return data;}
 function cancel() {reviewGeneration++;approval=null;$('review').hidden=true;$('confirm').value='';}
 async function action(fn){if(busy)return;busy=true;$('workbench').setAttribute('aria-busy','true');$('status').textContent='Working…';try{await fn();$('status').textContent='Ready';}catch(e){$('status').textContent=e.message;}finally{busy=false;$('workbench').setAttribute('aria-busy','false');}}
@@ -25,7 +31,7 @@ async function refresh(){
   } catch(error) { if(snapshot)$('freshness').textContent='Refresh failed. Displaying an older snapshot; do not treat these counts as current.';throw error; }
 }
 $('connect').onclick=()=>action(refresh);
-$('token').oninput=()=>{clearFixture();$('fixtureInput').value='';session++;events=[];snapshot=null;historyLimit=20;choose(null);renderDashboard();$('refresh').disabled=true;$('freshness').textContent='Locked. Unlock to load actual captured records.';$('detail').textContent='Locked';$('storage').textContent='Locked';$('diff').textContent='No comparison yet.';$('result').textContent='No replay result in this session.';$('target').replaceChildren(new Option('Unlock to load destinations',''));$('status').textContent='Token changed; unlock inbox';};
+$('token').oninput=()=>{resetGuide();clearFixture();$('fixtureInput').value='';session++;events=[];snapshot=null;historyLimit=20;choose(null);renderDashboard();$('refresh').disabled=true;$('freshness').textContent='Locked. Unlock to load actual captured records.';$('detail').textContent='Locked';$('storage').textContent='Locked';$('diff').textContent='No comparison yet.';$('result').textContent='No replay result in this session.';$('target').replaceChildren(new Option('Unlock to load destinations',''));$('status').textContent='Token changed; unlock inbox';};
 let pendingFixture=null,fixtureGeneration=0;
 function clearFixture() {clearRedaction();fixtureGeneration++;pendingFixture=null;$('fixtureReview').hidden=true;$('fixturePreview').textContent='';}
 $('fixtureInput').oninput=clearFixture;
@@ -44,22 +50,22 @@ $('previewFixture').onclick=()=>action(async()=>{
 $('importFixture').onclick=()=>action(async()=>{
   if(!pendingFixture)throw Error('Validate and review a fixture first');
   const request=pendingFixture;clearFixture();
-  const result=await api(request.route+'/import',request.body);$('fixtureInput').value='';await refresh();choose(result.id||result.events[0].id);
+  const result=await api(request.route+'/import',request.body);$('fixtureInput').value='';await refresh();choose(result.id||result.events[0].id);guideDone('import');
 });
 let redactionGeneration=0;
 function clearRedaction(){redactionGeneration++;$('redactionReview').hidden=true;$('redactionPreview').textContent='';}
 $('payload').oninput=clearRedaction;
-$('previewRedaction').onclick=()=>action(async()=>{clearRedaction();const generation=redactionGeneration;const preview=await api('redaction/preview',{payload:JSON.parse($('payload').value)});if(generation!==redactionGeneration)return;$('redactionPreview').textContent=json(preview.payload);$('redactionReview').hidden=false;});
-$('capture').onclick=()=>action(async()=>{const event=await api('events',{label:$('label').value,payload:JSON.parse($('payload').value)});await refresh();choose(event.id);});
+$('previewRedaction').onclick=()=>action(async()=>{clearRedaction();const generation=redactionGeneration;const preview=await api('redaction/preview',{payload:JSON.parse($('payload').value)});if(generation!==redactionGeneration)return;$('redactionPreview').textContent=json(preview.payload);$('redactionReview').hidden=false;guideDone('preview');});
+$('capture').onclick=()=>action(async()=>{const event=await api('events',{label:$('label').value,payload:JSON.parse($('payload').value)});await refresh();choose(event.id);guideDone('capture');});
 $('sample').onclick=()=>{clearRedaction();$('label').value='Synthetic order';$('payload').value=json({type:'order.created',order:{id:'demo-001',amount:1499,currency:'THB'},email:'demo@example.test',token:'synthetic-secret'});};
-$('export').onclick=()=>action(async()=>{const fixture=await api('events/'+selected+'/fixture');const url=URL.createObjectURL(new Blob([JSON.stringify(fixture)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='webhook-fixture-'+selected+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+$('export').onclick=()=>action(async()=>{const fixture=await api('events/'+selected+'/fixture');const url=URL.createObjectURL(new Blob([JSON.stringify(fixture)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='webhook-fixture-'+selected+'.json';a.click();guideDone('export');setTimeout(()=>URL.revokeObjectURL(url),1000);});
 $('exportCollection').onclick=()=>action(async()=>{
   const ids=filteredEvents().map(event=>event.id);if(ids.length<1||ids.length>20)throw Error('Filter the inbox to 1–20 events before exporting');
   const collection=await api('collections/export',{ids});
   const url=URL.createObjectURL(new Blob([JSON.stringify(collection)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='webhook-collection.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 });
 $('delete').onclick=()=>action(async()=>{cancel();await api('delete',{id:selected});await refresh();});
-$('compare').onclick=()=>action(async()=>{$('diff').textContent=json(await api('compare',{a:selected,b:$('compareWith').value}));});
+$('compare').onclick=()=>action(async()=>{$('diff').textContent=json(await api('compare',{a:selected,b:$('compareWith').value}));guideDone('compare');});
 $('target').onchange=cancel;
 $('prepare').onclick=()=>action(async()=>{cancel();const generation=reviewGeneration;const pending=await api('prepare',{id:selected,url:$('target').value});if(generation!==reviewGeneration)return;approval=pending;$('warning').textContent=approval.warning+' Destination: '+approval.url+' Payload SHA-256: '+approval.hash+' Confirmation expires in 60 seconds.';$('review').hidden=false;});
 $('cancel').onclick=cancel;

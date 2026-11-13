@@ -19,7 +19,8 @@ function boundedPayload(value, sanitize=redact) {
 }
 // Validate an authenticated snapshot before constructing maps or recovering attempts.
 // This is a compatibility gate for restoration, not a redaction migration.
-function validateState(state) {
+export function validateState(state) {
+  if(!state || typeof state!=='object' || state.version!==1 || !Array.isArray(state.events) || state.events.length>200 || !Array.isArray(state.receipts) || state.receipts.length>2000)throw Error('Invalid persisted state');
   const ids=new Set(),receiptIds=new Set();
   for(const event of state.events) {
     if(!event || typeof event.id!=='string' || !/^[A-Za-z0-9_-]{1,128}$/.test(event.id) || ids.has(event.id) || !Number.isSafeInteger(event.createdAt) || event.createdAt<0 || typeof event.label!=='string' || event.label.length>80 || !event.payload || typeof event.payload!=='object' || !Array.isArray(event.attempts) || event.attempts.length>20)throw new Error('Invalid persisted event');
@@ -77,7 +78,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
   let budgetStart=now(),budget=0;
   const server = http.createServer(async(req,res)=>{
     operations.observeResponse(res);
-    const reply=(status,data)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
+    const reply=(status,data)=>{if(status===401&&req.method==='POST'&&['/ingress','/ingress/stripe'].includes(req.url))operations.recordSignatureFailure();res.writeHead(status,{'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(data));};
     try {
       if(now()-budgetStart>=60000){budgetStart=now();budget=0;}
       const principal=credentials.authenticate(req.headers.authorization),authorized=!!principal;
@@ -222,7 +223,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
           if(events.get(event.id)!==event||now()-event.createdAt>=ttl)throw new Error('Event expired or removed before transmission');
           attempt.outcome='sending';persist();
           Object.assign(attempt,await send(target,event.payload,{attemptId:attempt.id}),{outcome:'response_received'});
-        } catch(error){attempt.error=String(error.message).slice(0,1024);attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';}
+        } catch(error){if(!storageHealthy)throw error;attempt.error=String(error.message).slice(0,1024);attempt.outcome=attempt.outcome==='sending'?'unknown_delivery':'blocked';}
         persist();operations.recordReplay(attempt);return reply(200,attempt);
       }
       reply(404,{error:'Not found'});

@@ -142,3 +142,57 @@ jobs:
           expected=$(node -p 'JSON.parse(require("fs").readFileSync("image-artifact/build.json","utf8")).imageId')
           test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$expected"
           LAB_TEST_IMAGE="$tag" KIND_NODE_IMAGE=kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 node test/kubernetes-kind.mjs
+
+  endurance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Run dedicated 30-minute synthetic loopback workload
+        shell: bash
+        env:
+          LAB_ENDURANCE_SECONDS: 1800
+          LAB_ENDURANCE_OUTPUT: endurance.json
+        run: node test/endurance.mjs | tee endurance.log
+      - name: Retain capacity reference and measurements
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: synthetic-endurance-evidence
+          path: |
+            endurance.json
+            endurance.log
+          retention-days: 14
+          if-no-files-found: warn
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - name: Install locked test-only browser tooling
+        run: |
+          npm ci --prefix test/browser --ignore-scripts --no-audit --no-fund
+          node test/browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Run synthetic private browser acceptance
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/test/browser/node_modules/playwright/index.mjs
+        run: |
+          node test/ui-smoke.mjs
+          node test/fixture-ui-smoke.mjs
+          node test/redaction-ui-smoke.mjs
+          node test/onboarding-ui-smoke.mjs
+          node test/dashboard-smoke.mjs
+      - name: Retain synthetic browser screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: synthetic-browser-screenshots
+          path: docs/*preview.png
+          retention-days: 14

@@ -1,5 +1,7 @@
 # Release 1 customer-readiness review
 
+Current engineering checkpoint: [recovery, migration, alerts, onboarding and fault/capacity work](R1_RECOVERY_CHECKPOINT.md). The dated assessment below is historical; the [roadmap](ROADMAP.md) remains the full launch contract.
+
 Reviewed against PLAN.md, PRODUCT.md, README and HOSTINGER.md on 2026-11-12. A successful replay is a technical milestone, not a substitute for the original adoption and Hostinger goals. No roadmap criterion is waived here.
 
 ## Verified foundation

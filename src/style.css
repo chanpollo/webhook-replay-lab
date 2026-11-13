@@ -199,3 +199,5 @@ footer>span {display: flex; gap: 8px; align-items: center}
 .fixture-import textarea { margin: 8px 0 12px; }
 #fixtureNotice { overflow-wrap: anywhere; }
 #fixtureReview .actions { margin-top: 12px; }
+
+.first-run{margin:16px 0}.first-run>summary{cursor:pointer;padding:16px;font-weight:600}.first-run li{margin:8px 0}.first-run p{max-width:85ch}

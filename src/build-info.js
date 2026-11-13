@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 
 // Hash only shipped runtime inputs, never environment values, credentials or data.
-export const BUILD_FILES = ['package.json', 'bin/fixtures.mjs', 'bin/doctor.mjs', 'src/analytics.js', 'src/operations.js', 'src/auth.js', 'src/secrets.js', 'src/provider-signatures.js', 'src/app.js', 'src/build-info.js', 'src/core.js', 'src/redaction.js', 'src/fixture.js', 'src/index.html', 'src/server.js', 'src/store.js', 'src/style.css'];
+export const BUILD_FILES = ['package.json', 'bin/fixtures.mjs', 'bin/doctor.mjs', 'bin/rotate-storage-key.mjs', 'bin/migrate-redaction.mjs', 'bin/alerts.mjs', 'src/alerts.js', 'src/analytics.js', 'src/operations.js', 'src/auth.js', 'src/secrets.js', 'src/provider-signatures.js', 'src/app.js', 'src/build-info.js', 'src/core.js', 'src/redaction.js', 'src/fixture.js', 'src/index.html', 'src/server.js', 'src/store.js', 'src/style.css'];
 export function readBuildInfo(root = new URL('../', import.meta.url)) {
   let version = 'unknown';
   try {

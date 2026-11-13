@@ -1,0 +1,7 @@
+{
+  "name": "hook-browser-acceptance",
+  "private": true,
+  "dependencies": {
+    "playwright": "1.62.1"
+  }
+}

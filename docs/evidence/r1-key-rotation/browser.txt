@@ -1,0 +1,5 @@
+PASS browser: unlock, duplicate-click capture, redaction, comparison, export, deletion, token change including stale in-flight responses, stale preparation cancellation, responsive layout, replay cancellation/expiry/double-click/connection interruption/reload; injected transport only, no external requests
+PASS fixture UI: preview without save, redaction, cancel, invalid version, stale preview, double-click import and session clearing
+PASS redaction preview UI: custom masking, no store, editing/navigation invalidation
+PASS onboarding: session checklist, preview without capture, duplicate capture, sanitized fixture download/import/compare, 320/390/1440 layout, retention expiry, token/reload reset; no external requests
+PASS dashboard: actual synthetic captures/replays, encrypted restart, exact metrics, unknown delivery drilldown, filters, chart table, keyboard tabs, failed refresh, expiry, token clearing, 320–1440 px layouts. No external network.

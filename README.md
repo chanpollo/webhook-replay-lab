@@ -10,10 +10,10 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 - [Verified image artifacts](docs/CONTAINER_IMAGE.md) and [Kubernetes self-hosting](docs/KUBERNETES.md)
 - [Release 1 roadmap](docs/ROADMAP.md)
 - [Fixtures and explicit replay CLI](docs/FIXTURES.md)
-- [Redaction rules](docs/REDACTION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
-- [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md)
+- [Redaction rules](docs/REDACTION.md) and [offline migration](docs/REDACTION_MIGRATION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)
+- [Operational diagnostics](docs/OPERATIONAL_DIAGNOSTICS.md), [local alerts](docs/ALERTS.md) and [capacity/fault contract](docs/CAPACITY_REFERENCE.md)
 - [Provider ingress and staging limits](docs/PROVIDER_INGRESS.md)
-- [Self-hosting, backups and recovery](docs/SELF_HOSTING.md)
+- [Self-hosting, backups and recovery](docs/SELF_HOSTING.md) and [offline storage-key rotation](docs/STORAGE_KEY_ROTATION.md)
 
 ### Verified candidate evidence
 
@@ -67,8 +67,8 @@ npm start
 
 Open http://127.0.0.1:4319 and paste the session token printed in your terminal. No dependency installation required. Do not share this token or redirect logs to a shared location. The token is generated per process unless `LAB_TOKEN` is supplied. Keep the terminal running; Ctrl-C stops the lab and discards its memory.
 
-1. Unlock the inbox and open **Workbench**.
-2. Capture the clearly labeled synthetic order.
+1. Unlock the inbox and choose **Open capture workbench** in the first-run guide.
+2. Preview redaction, then capture the clearly labeled synthetic order.
 3. Inspect the redacted JSON and export its fixture.
 4. Change the synthetic amount, capture a second event, then compare it with the first.
 5. Delete events you no longer need.
@@ -133,7 +133,7 @@ export LAB_TOKEN="$(openssl rand -hex 32)"
 docker compose up --build
 ```
 
-Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional ingress profile exposes only a custom signed capture route, not native provider signatures. No permanent public service deployment is claimed; isolated owned-host acceptance is documented separately.
+Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional receiver supports generic HMAC and an opt-in Stripe test-mode adapter; see the provider ingress guide. No permanent public service deployment is claimed; isolated owned-host acceptance is documented separately.
 
 ## Hostinger VPS
 
@@ -159,6 +159,7 @@ PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-smo
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-performance.mjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/fixture-ui-smoke.mjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/redaction-ui-smoke.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/onboarding-ui-smoke.mjs
 ```
 
 If the bundled Chromium version is absent, set `PLAYWRIGHT_CHANNEL=chrome` (or `msedge`) to use an already-installed browser in an isolated headless session. This does not use your signed-in browser profile or download a browser. Omit the variable to use Playwright’s bundled Chromium.
@@ -173,7 +174,7 @@ See [v1 release readiness](docs/RELEASE_READINESS.md) for the current unpassed g
 - Default redaction uses sensitive field-name matching and email/Bearer patterns; optional restricted JSONPath rules add masking and cannot disable defaults. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
 - Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values are marked separately from explicit null; own-property checks handle prototype-named fields.
 - One shared inbox with an admin token and optional capture/read roles; no tenant or per-user event isolation, SSO, general-purpose RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.
-- Custom signed ingress only, no native provider adapters or outbound authentication. No guarantee of exactly-once delivery.
+- Generic signed ingress and an opt-in Stripe test-mode adapter; live-mode Stripe and other native providers are unsupported. No outbound authentication or guarantee of exactly-once delivery.
 - This is a bounded developer tool, not a hardened internet-facing security product. See [security notes](docs/SECURITY.md), [product hypothesis](docs/PRODUCT.md), and [verification](docs/VERIFICATION.md).
 
 ## License

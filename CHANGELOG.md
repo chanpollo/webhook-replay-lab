@@ -4,6 +4,18 @@
 
 No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied by these main-branch changes. Historical sections describe their own release's evidence, not the current candidate.
 
+### Additional Release 1 engineering (not yet image/cluster verified)
+
+- Add offline stricter-redaction migration to a verified encrypted copy; reset labels and remove replay history from the copy while preserving source and deduplication metadata.
+- Add private loopback operational alert CLI and bounded signature-failure counters, with fixed actions and no external notifications.
+- Add session-only task onboarding for preview, capture, export, import and comparison; cover expiry, reset and responsive behavior.
+- Add process-crash/fsync and replay-commit fault tests. Fix replay returning a success after a transient failed pre-send storage commit; fail closed with 503 before further handling.
+- Add a dedicated 30-minute CI workload with predeclared bounds, phase latency/status counts, CPU/RSS/disk samples and stopped-writer verification.
+
+- Add offline encryption-key rotation to a distinct destination, preserving and locking the original; validate and read back the encrypted copy before reporting success.
+- Reject existing destinations, wrong keys and writer locks; keep diagnostics free of secrets and paths. Document cutover, rollback and backup retention.
+- Reuse snapshot validation and include the shipped rotation CLI in runtime build identity. This does not complete Release 1 acceptance or establish Hostinger support.
+
 ### Self-host candidate engineering acceptance (not a formal release)
 
 - Add shared bounded private secret-file loading, a loaded-image Compose profile, hardened single-writer Kubernetes manifests and isolated cluster acceptance CI.

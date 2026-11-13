@@ -12,4 +12,6 @@ The response contains a schema version, uptime, memory/encrypted mode and health
 - `http_ok` means an HTTP 2xx response, not business processing or exactly-once delivery. `unknown` requires receiver-history investigation, not blind retry. `active` in retained counts is an attempt still validating/sending.
 - Diagnostics use the existing retained bounds of 200 events and 20 attempts per event. They do not estimate total payload bytes, memory use, disk capacity, throughput or latency SLA. Counters saturate at the maximum safe JavaScript integer rather than overflow.
 
-This is a minimal in-process operational view, not durable audit history, alerting, an uptime guarantee, DDoS protection or proof of production capacity.
+`process.signatureFailures` counts rejected authentication on enabled signed-ingress POST routes without storing signatures, event IDs or source addresses. It is process-local and resets on restart.
+
+Use the [local alert probe](ALERTS.md) for fixed capacity, signature-failure, unknown-delivery and health/recovery signals. This view is not durable audit history, external notification delivery, an uptime guarantee, DDoS protection or proof of production capacity.

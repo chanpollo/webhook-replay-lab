@@ -1,13 +1,21 @@
 {
   "method": "Codex CLI separate fresh read-only contexts; automated source review, not a human audit",
   "sha256": {
-    "scripts/verify-image-archive.mjs": "e4af8125134ee42b11445ebbb437f4b991090d507708196e7810d0d72b2e6492",
-    "scripts/prepare-release-packet.mjs": "8b812d4c2331665609a22679bca7d1d55fcfab4a1e1fecadafaa5a5edf0bfbec",
-    "scripts/retain-image-security.mjs": "d3883c10bc226a81de3b4f653c3be66dfb4e0fb61091d90b81063376d04cc52c",
-    "test/image-archive.test.js": "ee34f8f6d0b74b1bbae091a558951d3b813b5ba77edccd827c120ff13fdcf0c7",
+    "scripts/verify-image-archive.mjs": "e7a556d1e756b4c0a246ce703056945e39e432230170913f2d918b242e5e13e9",
+    "scripts/prepare-release-packet.mjs": "27e9d24ddb2bedca5dd2c9af8ef2f1af168bf18ca83d82e2c2a01a0727c715e5",
+    "scripts/retain-image-security.mjs": "32fc9579baeb5127f2123fce479ab2f23a29cd6057766367d0e266a5380c1b4b",
+    "test/image-archive.test.js": "01abd2e7ab4208fd0ab2d4ed75439823b183b3cc5bc7995b1b7c15a582fb8c45",
     "test/helpers/image-archive.mjs": "92e7417f73d65cad8e59a616abb785ffbcae7c858f9a1e4e0af245b106c58380",
     "test/image-security-retention.test.js": "1ad668160d26798698699740f9fd54cc5bfffe0b5f788de0dfc9fd93913cf75e",
     "test/release-packet.test.js": "653e66e23ca8e6b140f6571c9b7e6e3e5e28cd81ae6d7918f7f9d48f504e2c91",
-    ".github/workflows/ci.yml": "074735373948b8bf5b85bfd69c9b772547354ab8d54176f05761059ec7db2615"
-  }
+    ".github/workflows/ci.yml": "074735373948b8bf5b85bfd69c9b772547354ab8d54176f05761059ec7db2615",
+    "scripts/collect-ci-evidence.mjs": "12d332d6299fe134f71718c4dba25eb3fa8fcf78459b9cb9a9cd3f116cde154a",
+    "test/tool-entrypoints.test.js": "8ca7325a6b5d0f21c4dc2787403d393011b053c16a4dc6e6e30615cf4bd46d75"
+  },
+  "reviewRecords": [
+    "initial.txt",
+    "platform.txt",
+    "before-alias.txt",
+    "final.txt"
+  ]
 }

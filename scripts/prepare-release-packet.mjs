@@ -80,7 +80,8 @@ export function prepareReleasePacket({evidence,output,commit,repository=fileURLT
  return {...identity,output,published:false,releaseApproved:false};
 }
 
-if(process.argv[1]===fileURLToPath(import.meta.url)) {
+function isMain(){try{return Boolean(process.argv[1])&&fs.realpathSync(process.argv[1])===fileURLToPath(import.meta.url);}catch{return false;}}
+if(isMain()) {
  try{if(process.argv.length!==5)throw Error();const [evidence,output,commit]=process.argv.slice(2);console.log(JSON.stringify(prepareReleasePacket({evidence,output,commit})));}
  catch{console.error('Release packet preparation failed. Require trusted exact-source CI artifacts, matching checksums/scans/full-duration results, a local source commit and an absent output directory. Inspect partial output before retry. Nothing was published.');process.exitCode=1;}
 }

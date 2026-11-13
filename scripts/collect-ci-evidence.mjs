@@ -48,7 +48,8 @@ export async function collectCIEvidence({runId,output}) {
  fs.writeFileSync(join(output,'artifact-provenance.json'),JSON.stringify(provenance,null,2)+'\n',{mode:0o600,flag:'wx'});
  return {collected:true,runId:run.id,output,published:false};
 }
-if(process.argv[1]===fileURLToPath(import.meta.url)){
+function isMain(){try{return Boolean(process.argv[1])&&fs.realpathSync(process.argv[1])===fileURLToPath(import.meta.url);}catch{return false;}}
+if(isMain()){
  try{if(process.argv.length!==4)throw Error();console.log(JSON.stringify(await collectCIEvidence({runId:process.argv[2],output:process.argv[3]})));}
  catch{console.error('CI evidence collection failed. Require authenticated GitHub access, a successful exact run, verified artifact digests, gh/unzip and an absent private output directory. Inspect partial output; nothing was published.');process.exitCode=1;}
 }

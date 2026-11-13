@@ -80,7 +80,8 @@ export async function verifyImageArchive(path,{imageId,tag,inspect,archiveSha256
  }finally{source?.destroy();decoded?.destroy();if(!source)fs.closeSync(fd);}
 }
 
-if(process.argv[1]===fileURLToPath(import.meta.url)){
+function isMain(){try{return Boolean(process.argv[1])&&fs.realpathSync(process.argv[1])===fileURLToPath(import.meta.url);}catch{return false;}}
+if(isMain()){
  try{let expected;if(process.argv.length===4&&process.argv[3]==='--expected-stdin'){const pieces=[];let total=0;for await(const bytes of process.stdin){total+=bytes.length;must(total<=8*1024*1024,'Bounded snapshot required');pieces.push(bytes);}expected=JSON.parse(Buffer.concat(pieces));must(/^[a-f0-9]{64}$/.test(expected.archiveSha256),'Snapshot hash required');}else{must(process.argv.length===5,'Usage');const build=smallJson(process.argv[3]);expected={imageId:build.imageId,tag:build.tag,inspect:smallJson(process.argv[4])};}console.log(JSON.stringify(await verifyImageArchive(process.argv[2],expected)));}
  catch{console.error('Image archive identity verification failed. Require a bounded Docker-save gzip archive with matching Docker ID, tag, config, layers and inspected runtime.');process.exitCode=1;}
 }

@@ -8,6 +8,7 @@ No v0.3.0/v1 release, live Hostinger deployment or program acceptance is implied
 
 - Verify saved-image archive graphs and distinguish Docker local index/manifest IDs from config digests; retain archive identity proof in private packets. Modern Docker-save exports can also contain OCI layout/index blobs. No registry publication or Release 1 approval is implied.
 - Enable image-file and image-config secret scanning in the existing immutable-image CI gate. Reject retained secret findings when preparing a packet; earlier vulnerability-only scans are not retroactively secret scans.
+- Keep release-tool CLI validation active when invoked through canonical-path aliases or symlinks; imports remain inert.
 
 ### Exact-checkpoint CI and release preparation follow-up
 

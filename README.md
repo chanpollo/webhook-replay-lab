@@ -2,11 +2,17 @@
 
 A dependency-free, local-first staging debugger: capture JSON, sanitize it, export a reproducible fixture, compare payloads, and explicitly replay once to an approved staging endpoint.
 
-**Release status: [v0.2.1](https://github.com/chanpollo/webhook-replay-lab/releases/tag/v0.2.1) is the latest published release. This working tree targets v0.3.0, which is unreleased.** Capture, sanitized export/comparison, explicit one-shot HTTPS replay and encrypted persistence are implemented and locally verified, including real TLS transport and isolated Docker backup restoration. This is not a public webhook delivery gateway. Deployment on an actual Hostinger VPS and public ingress routing remain unverified. See [self-hosting, backup and recovery](docs/SELF_HOSTING.md).
+**Release status (checked 2026-11-13): [v0.2.1](https://github.com/chanpollo/webhook-replay-lab/releases/tag/v0.2.1) is the latest published release. The main-branch candidate targets v0.3.0 and is unreleased.** The candidate includes fixture/collection import and export, explicit replay CLI, configurable redaction with preview, scoped capture/read credentials and operator diagnostics. It is a shared-inbox staging workbench, not a public webhook delivery gateway.
+
+### Verified candidate evidence
+
+Runtime build `98aadcff4fdf` passed 92 tests, Node 22/24 CI, container/security checks, owned-host isolated install/upgrade/rollback/recovery and controlled external HTTPS replay. The receiver recorded one matching, redacted request with no forwarded Authorization header; scoped capture/read tokens could not replay. Temporary receivers were closed afterward. See [exact candidate acceptance and cleanup](docs/FINAL_CANDIDATE_ACCEPTANCE.md).
+
+[Fresh-install walkthrough](docs/FRESH_INSTALL_AGENT_WALKTHROUGH.md) covers native Node setup, CLI fixture verification and encrypted restart; it is an agent-operated simulation, **not human usability evidence**. The documented runtime was last verified on [source b7104f9 and its CI](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43288579641); inspect the CI for your chosen revision rather than assuming every later checkout passed. No live Hostinger deployment, partner-program approval, permanent public ingress or v1 release is claimed.
 
 ## Screenshots
 
-Three focused views: Overview, Replay history, and Workbench. Screenshots use actual locally recorded **synthetic** captures and injected replay outcomes, not customer traffic or an external staging integration. No real customer data or usable credentials are shown. Charts in normal use derive only from retained server records; the app does not seed demo metrics.
+Three focused views: Overview, Replay history, and Workbench. These screenshots document the recorded candidate layout and may not show every subsequently added control. Screenshots use actual locally recorded **synthetic** captures and injected replay outcomes, not customer traffic or an external staging integration. No real customer data or usable credentials are shown. Charts in normal use derive only from retained server records; the app does not seed demo metrics.
 
 ![Retained activity overview](docs/desktop-preview.png)
 
@@ -36,9 +42,9 @@ cd webhook-replay-lab
 git checkout v0.2.1
 ```
 
-This installs the published stable version, **not** the unreleased fixture/collection CLI features described below. For the unreleased development candidate, explicitly check out `main` instead and verify its CI and build ID. A main-branch checkout is not a published stable release.
+This installs the published stable version, **not** all candidate features described below (including fixture/collection CLI, custom redaction, scoped credentials and doctor). For the unreleased development candidate, explicitly check out `main` instead and verify its CI and build ID. A main-branch checkout is not a published stable release.
 
-Requires Node.js 22 or newer (container: Node 24; local verification: Node 25.2.1).
+Requires a supported Node.js version 22 or newer (CI: Node 22/24; pinned container: Node 24).
 
 ```sh
 npm start
@@ -112,7 +118,7 @@ export LAB_TOKEN="$(openssl rand -hex 32)"
 docker compose up --build
 ```
 
-Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional ingress profile exposes only a custom signed capture route, not native provider signatures. No deployment has been performed.
+Compose publishes **only 127.0.0.1:4319**, uses a non-root user, read-only filesystem, dropped capabilities and resource limits. It has no persistent volume because the inbox is deliberately ephemeral. Never change the published address to a public interface without a separate security design and authorization. A remote VPS requires SSH forwarding for the private UI. The optional ingress profile exposes only a custom signed capture route, not native provider signatures. No permanent public service deployment is claimed; isolated owned-host acceptance is documented separately.
 
 ## Hostinger VPS
 
@@ -125,6 +131,8 @@ Tests require Node.js 22+ and OpenSSL on PATH (for a temporary local TLS certifi
 ```sh
 npm test
 npm run check
+npm run doctor       # Reads current environment only; does not load .env or probe the network
+npm run test:capacity # Bounded synthetic loopback checks, not a throughput benchmark
 LAB_TOKEN=synthetic-config-validation-token-000000 docker compose config --quiet
 ```
 
@@ -134,6 +142,8 @@ Optional browser QA uses an existing Playwright installation:
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/ui-smoke.mjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-smoke.mjs
 PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/dashboard-performance.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/fixture-ui-smoke.mjs
+PLAYWRIGHT_MODULE=/absolute/path/to/playwright/index.mjs node test/redaction-ui-smoke.mjs
 ```
 
 If the bundled Chromium version is absent, set `PLAYWRIGHT_CHANNEL=chrome` (or `msedge`) to use an already-installed browser in an isolated headless session. This does not use your signed-in browser profile or download a browser. Omit the variable to use Playwright’s bundled Chromium.
@@ -144,10 +154,10 @@ See [v1 release readiness](docs/RELEASE_READINESS.md) for the current unpassed g
 
 ## Limits and honest boundaries
 
-- 64 KB ordinary inbound JSON and each sanitized payload; fixture envelopes allow 65 KB and collection envelopes 257 KB (256 KB sanitized collection); 200 events; 120 authenticated API requests/minute; 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
-- Redaction uses sensitive field-name matching and email/Bearer patterns. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
+- 64 KB ordinary inbound JSON and each sanitized payload; fixture envelopes allow 65 KB and collection envelopes 257 KB (256 KB sanitized collection); 200 events; 120 permitted authenticated API requests/minute per credential (one admin plus at most 16 scoped credentials); 600 non-static public/unauthorized/forbidden requests/minute shared budget (private UI assets and health checks are exempt); 100 pending confirmations; 20 retained attempts/event; one replay start per five seconds.
+- Default redaction uses sensitive field-name matching and email/Bearer patterns; optional restricted JSONPath rules add masking and cannot disable defaults. Recognized credential fields include CVV/CVC, PIN/OTP/TOTP, JWT, private keys, session IDs, account/routing numbers, IBAN, recovery/backup codes, access/signing/encryption keys and security answers, including common camelCase and separator variants. It is not DLP and cannot guarantee removal of arbitrary personal data, secrets in free text, labels or unusual schemas. Review exported fixtures and replay content manually.
 - Payload comparison reports at most 200 differing paths; it is not a schema-aware or response-body regression runner. Missing values are marked separately from explicit null; own-property checks handle prototype-named fields.
-- Single-user token, no tenant isolation, SSO/RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.
+- One shared inbox with an admin token and optional capture/read roles; no tenant or per-user event isolation, SSO, general-purpose RBAC, scheduling or delivery queue. Optional AES-256-GCM snapshots retain bounded attempt history, not a comprehensive audit log.
 - Custom signed ingress only, no native provider adapters or outbound authentication. No guarantee of exactly-once delivery.
 - This is a bounded developer tool, not a hardened internet-facing security product. See [security notes](docs/SECURITY.md), [product hypothesis](docs/PRODUCT.md), and [verification](docs/VERIFICATION.md).
 

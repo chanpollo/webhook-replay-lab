@@ -12,6 +12,8 @@ Checks: valid raw HMAC capture, valid Stripe test-mode capture/duplicate/forged 
 
 ## Evidence status
 
-Harness syntax and source review completed locally. Local Docker daemon was not running and was **not started**. Actual Caddy adaptation and container execution must pass the new CI `Check isolated ingress reverse proxy` gate before these checks are claimed as executed. A failed gate is a release blocker; do not remove a negative test merely to make it pass.
+Exact source `baaeffff89642234fa5a896e5640360ae67a626f` passed [CI run 43348640664](https://github.com/chanpollo/webhook-replay-lab/actions/runs/43348640664) on 2026-11-13. The actual Caddy validation/container gate passed: generic and Stripe synthetic captures 201, duplicates 200, forged signatures 401, Stripe live-mode 400, 16 private-route cases, 12 method cases, 17 URI cases and oversized chunked body 413. Two accepted redacted events remained. The recipe SHA-256 was `05b3df7221a7640ecc9fc026ac571f3443be97e9eecfae43e1db9e3145fc50b7`. Cleanup completed without published ports. Node 22/24 tests (119 each) and the immutable-image/Node security gates also passed.
+
+Local Docker daemon was not running and was **not started**; this container evidence came from isolated CI. Later source/recipe changes require their own exact-commit gate. A failed gate is a release blocker; do not remove a negative test merely to make it pass.
 
 Public exposure remains a separate authorized operation with an owned hostname, trusted TLS, monitored resource limits and tested recovery. Keep the admin listener private even after this gate passes.

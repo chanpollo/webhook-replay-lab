@@ -3,6 +3,7 @@
 import {openSync,fstatSync,readSync,closeSync,constants} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {targetURL} from '../src/core.js';
+import {readSecret} from '../src/secrets.js';
 import {readStripeSecret,createStripeVerifier} from '../src/provider-signatures.js';
 import {createRedactor} from '../src/redaction.js';
 import {randomBytes} from 'node:crypto';
@@ -11,7 +12,7 @@ function boundedFile(path,max,privateOnly=false){let fd;try{fd=openSync(path,con
 export function diagnose(env=process.env,nodeVersion=process.versions.node) {
  const checks=[];const add=(id,status,action)=>checks.push({id,status,...(action?{action}:{})});
  add('node',Number(nodeVersion.split('.')[0])>=22?'pass':'fail',Number(nodeVersion.split('.')[0])>=22?undefined:'Install a supported Node.js version >=22.');
- function secret(name){if(!env[name+'_FILE'])return env[name]||'';try{const v=boundedFile(env[name+'_FILE'],4096,true).trim();add(name.toLowerCase()+'_file','pass');return v;}catch{add(name.toLowerCase()+'_file','fail','Use an owner-only regular secret file no larger than 4 KB; symlinks are not accepted by this diagnostic.');return '';}}
+ function secret(name){try{const value=readSecret(name,{env,emptyIsUnset:name==='LAB_INGRESS_KEY'});if(env[name+'_FILE']!==undefined)add(name.toLowerCase()+'_file','pass');return value||'';}catch{add(name.toLowerCase()+'_file','fail','Configure one nonempty secret source: environment value or owned private regular non-linked file up to 4 KB.');return '';}}
  const token=secret('LAB_TOKEN'),key=secret('LAB_STORAGE_KEY'),ingress=secret('LAB_INGRESS_KEY');
  let adminValid=false;try{createCredentialPolicy({adminToken:token});adminValid=true;}catch{}
  add('admin_token',adminValid?'pass':token?'fail':'warn',adminValid?undefined:token?'Use an independently generated random token of 32–256 printable non-space ASCII characters.':'No configured token: the server generates a session token. Set a private token for reproducible deployment.');

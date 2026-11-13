@@ -7,6 +7,7 @@ A dependency-free, local-first staging debugger: capture JSON, sanitize it, expo
 ## Documentation
 
 - [Install and platform support](docs/INSTALL.md)
+- [Verified image artifacts](docs/CONTAINER_IMAGE.md) and [Kubernetes self-hosting](docs/KUBERNETES.md)
 - [Release 1 roadmap](docs/ROADMAP.md)
 - [Fixtures and explicit replay CLI](docs/FIXTURES.md)
 - [Redaction rules](docs/REDACTION.md) and [shared-inbox credentials](docs/SCOPED_CREDENTIALS.md)

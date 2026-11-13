@@ -1,0 +1,25 @@
+# Verified local image, private persistent workbench. Use the same explicit -p project name for lifecycle operations.
+services:
+  lab:
+    image: "${LAB_IMAGE:?Set the exact verified locally loaded image tag or digest}"
+    pull_policy: never
+    ports:
+      - "127.0.0.1:4319:4319"
+    environment:
+      CONTAINER_MODE: "1"
+      LAB_TOKEN: "${LAB_TOKEN:?Set a random token of at least 32 characters}"
+      LAB_STORAGE_KEY: "${LAB_STORAGE_KEY:?Set a 64-character hex encryption key}"
+      LAB_DATA_PATH: /data/inbox.enc
+      LAB_INGRESS_KEY: ""
+      STAGING_ALLOWLIST: "${STAGING_ALLOWLIST:-}"
+    volumes:
+      - lab-data:/data
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    mem_limit: 256m
+    stop_grace_period: 15s
+    restart: "no"
+volumes:
+  lab-data:

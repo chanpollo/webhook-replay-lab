@@ -1,0 +1,271 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "hook",
+    "namespace": "webhook-replay-lab"
+  },
+  "spec": {
+    "replicas": 1,
+    "strategy": {
+      "type": "Recreate"
+    },
+    "selector": {
+      "matchLabels": {
+        "app.kubernetes.io/name": "webhook-replay-lab"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app.kubernetes.io/name": "webhook-replay-lab"
+        }
+      },
+      "spec": {
+        "automountServiceAccountToken": false,
+        "terminationGracePeriodSeconds": 20,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 1000,
+          "runAsGroup": 1000,
+          "fsGroup": 1000,
+          "fsGroupChangePolicy": "OnRootMismatch",
+          "seccompProfile": {
+            "type": "RuntimeDefault"
+          }
+        },
+        "initContainers": [
+          {
+            "name": "prepare-private-files",
+            "image": "REPLACE_WITH_REVIEWED_IMAGE@sha256:REPLACE_WITH_64_HEX",
+            "imagePullPolicy": "IfNotPresent",
+            "command": [
+              "node",
+              "/config/init-private.cjs"
+            ],
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 1000,
+              "runAsGroup": 1000,
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              },
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "data",
+                "mountPath": "/data"
+              },
+              {
+                "name": "private-runtime",
+                "mountPath": "/private-runtime"
+              },
+              {
+                "name": "secret-source",
+                "mountPath": "/secret-source",
+                "readOnly": true
+              },
+              {
+                "name": "config",
+                "mountPath": "/config",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "containers": [
+          {
+            "name": "lab",
+            "image": "REPLACE_WITH_REVIEWED_IMAGE@sha256:REPLACE_WITH_64_HEX",
+            "imagePullPolicy": "IfNotPresent",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 1000,
+              "runAsGroup": 1000,
+              "allowPrivilegeEscalation": false,
+              "readOnlyRootFilesystem": true,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              },
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              },
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              }
+            },
+            "ports": [
+              {
+                "name": "http",
+                "containerPort": 4319
+              }
+            ],
+            "env": [
+              {
+                "name": "LAB_TOKEN_FILE",
+                "value": "/private-runtime/private/admin-token"
+              },
+              {
+                "name": "LAB_STORAGE_KEY_FILE",
+                "value": "/private-runtime/private/storage-key"
+              },
+              {
+                "name": "LAB_DATA_PATH",
+                "value": "/data/private/inbox.enc"
+              },
+              {
+                "name": "CONTAINER_MODE",
+                "valueFrom": {
+                  "configMapKeyRef": {
+                    "name": "hook-config",
+                    "key": "CONTAINER_MODE"
+                  }
+                }
+              },
+              {
+                "name": "STAGING_ALLOWLIST",
+                "valueFrom": {
+                  "configMapKeyRef": {
+                    "name": "hook-config",
+                    "key": "STAGING_ALLOWLIST"
+                  }
+                }
+              },
+              {
+                "name": "LAB_INGRESS_KEY",
+                "valueFrom": {
+                  "configMapKeyRef": {
+                    "name": "hook-config",
+                    "key": "LAB_INGRESS_KEY"
+                  }
+                }
+              }
+            ],
+            "volumeMounts": [
+              {
+                "name": "data",
+                "mountPath": "/data"
+              },
+              {
+                "name": "private-runtime",
+                "mountPath": "/private-runtime",
+                "readOnly": true
+              }
+            ],
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 4319,
+                "httpHeaders": [
+                  {
+                    "name": "Host",
+                    "value": "localhost"
+                  }
+                ]
+              },
+              "timeoutSeconds": 3,
+              "periodSeconds": 10,
+              "failureThreshold": 3
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 4319,
+                "httpHeaders": [
+                  {
+                    "name": "Host",
+                    "value": "localhost"
+                  }
+                ]
+              },
+              "timeoutSeconds": 3,
+              "periodSeconds": 10,
+              "failureThreshold": 3,
+              "initialDelaySeconds": 15
+            },
+            "startupProbe": {
+              "httpGet": {
+                "path": "/healthz",
+                "port": 4319,
+                "httpHeaders": [
+                  {
+                    "name": "Host",
+                    "value": "localhost"
+                  }
+                ]
+              },
+              "timeoutSeconds": 3,
+              "periodSeconds": 10,
+              "failureThreshold": 12
+            }
+          }
+        ],
+        "volumes": [
+          {
+            "name": "data",
+            "persistentVolumeClaim": {
+              "claimName": "hook-data"
+            }
+          },
+          {
+            "name": "private-runtime",
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "1Mi"
+            }
+          },
+          {
+            "name": "secret-source",
+            "secret": {
+              "secretName": "hook-required-secrets",
+              "defaultMode": 288,
+              "items": [
+                {
+                  "key": "admin-token",
+                  "path": "admin-token"
+                },
+                {
+                  "key": "storage-key",
+                  "path": "storage-key"
+                }
+              ]
+            }
+          },
+          {
+            "name": "config",
+            "configMap": {
+              "name": "hook-config",
+              "defaultMode": 292
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "hook",
+    "namespace": "webhook-replay-lab"
+  },
+  "spec": {
+    "type": "ClusterIP",
+    "selector": {
+      "app.kubernetes.io/name": "webhook-replay-lab"
+    },
+    "ports": [
+      {
+        "port": 4319,
+        "targetPort": "http",
+        "protocol": "TCP"
+      }
+    ]
+  }
+}

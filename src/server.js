@@ -4,6 +4,7 @@ import { randomBytes, randomUUID, timingSafeEqual, createHmac, createHash } from
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createStore } from './store.js';
+import {readSecret} from './secrets.js';
 import {createCredentialPolicy,readScopedCredentials} from './auth.js';
 import {createStripeVerifier,validateStripeSignatureHeader,readStripeSecret} from './provider-signatures.js';
 import { readBuildInfo } from './build-info.js';
@@ -232,7 +233,7 @@ function buildLab({token, allowlist=[], send=transmit, resolve=resolveTarget, no
   return server;
 }
 if(process.argv[1]===fileURLToPath(import.meta.url)) {
-  const secret=name=>process.env[name+'_FILE']?readFileSync(process.env[name+'_FILE'],'utf8').trim():process.env[name];
+  const secret=name=>readSecret(name,{emptyIsUnset:name==='LAB_INGRESS_KEY'});
   const configuredToken=secret('LAB_TOKEN');
   const token=configuredToken || randomBytes(32).toString('hex');
   const allowlist=(process.env.STAGING_ALLOWLIST||'').split(',').filter(Boolean);
@@ -240,7 +241,8 @@ if(process.argv[1]===fileURLToPath(import.meta.url)) {
   const scopedCredentials=readScopedCredentials(process.env.LAB_SCOPED_TOKENS_FILE);
   const ingressKey=secret('LAB_INGRESS_KEY');
   const stripeSecret=readStripeSecret(process.env);
-  const store=process.env.LAB_DATA_PATH?createStore({path:process.env.LAB_DATA_PATH,key:secret('LAB_STORAGE_KEY')}):null;
+  const storageKey=secret('LAB_STORAGE_KEY');
+  const store=process.env.LAB_DATA_PATH?createStore({path:process.env.LAB_DATA_PATH,key:storageKey}):null;
   const server=createLab({token,allowlist,store,ingressKey,redactionPaths,scopedCredentials,stripeSecret});
   server.requestTimeout=10000;server.headersTimeout=10000;
   const port=Number(process.env.PORT||4319),host=process.env.CONTAINER_MODE==='1'?'0.0.0.0':'127.0.0.1';

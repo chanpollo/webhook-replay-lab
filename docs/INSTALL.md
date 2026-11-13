@@ -21,6 +21,7 @@ Use Git from its official distribution and a supported Node.js release from [nod
 | macOS, Docker Desktop | Earlier candidate container tests passed; latest runtime's container acceptance is from Linux CI/owned host, not a fresh macOS Docker test | Use Linux container volume; verify your selected version locally |
 | Windows, native Node / PowerShell | **Not tested.** Memory-only instructions below are a trial path, not a supported-platform assurance | Native encrypted storage has POSIX permission/ownership checks; **do not assume Windows persistence is supported** |
 | Windows, Docker Desktop with WSL2/Linux containers | **Not tested.** A possible Linux-container route, not Windows acceptance evidence | Verify mounts, secret permissions, loopback isolation and recovery before relying on it |
+| Kubernetes | **Planned / implementation in progress, not cluster-tested.** Use one writer, private admin and a pinned image digest; do not infer support from manifests existing | Dedicated compatible PVC; test permissions, replacement, backup and restore on the actual CSI driver |
 | Hostinger VPS | Docker profile is compatible in design and has passed owned-host sandbox tests; **no actual Hostinger install or program approval** | Requires an authorized VPS and host-specific acceptance |
 | PHP/shared hosting, generic static hosting | Not a supported runtime for this Node/Docker service | Not applicable |
 
@@ -126,3 +127,13 @@ This is installation acceptance, not proof of production scale or provider compa
 | HTTPS destination blocked | Check exact allowlist, public-address policy and certificate; never bypass guards to reach production/private metadata services |
 
 For backups, supported rollback boundaries, interrupted replay and retention, use [self-hosting and recovery](SELF_HOSTING.md). For verified versions and remaining product gates, use [candidate acceptance](FINAL_CANDIDATE_ACCEPTANCE.md) and [roadmap](ROADMAP.md).
+
+## OCI image and Kubernetes route
+
+Docker/Compose, Kubernetes and compatible Hostinger VPS installs are intended to consume the same reviewed OCI image, pinned by release tag **and digest**. No registry image is asserted to be published yet. Before registry publication, use the existing source-build route or the verified CI archive with `compose.image.yaml`, not an invented `docker pull` address. See [CONTAINER_IMAGE.md](CONTAINER_IMAGE.md) for artifact identity and promotion gates.
+
+Kubernetes packaging is being implemented separately. Treat it as **not cluster-tested** until evidence covers one-writer replacement, PVC/Secret permissions, private administration, allowed ingress routes, restart and isolated recovery. Do not apply draft manifests to an existing cluster merely to try them. See [target architecture](SELF_HOSTING.md#target-deployment-architecture).
+
+The CI workflow is configured to retain a verified Linux amd64 Docker-save archive for 14 days, after the final-image security gate. Use only a successful exact-commit run; see [download and identity verification](CONTAINER_IMAGE.md#candidate-ci-download-not-a-registry-release). This is not a public registry release, and does not establish arm64 or Kubernetes support.
+
+For an already verified, locally loaded image, use [`compose.image.yaml`](../compose.image.yaml) rather than the source-build profile. Follow the [image Compose commands](CONTAINER_IMAGE.md#run-the-verified-local-image-with-compose): required `LAB_IMAGE`, no implicit build/pull, private credentials, and the same explicit Compose project name for persistent lifecycle operations. Do not switch an existing store without stopping its writer and taking an offline backup.

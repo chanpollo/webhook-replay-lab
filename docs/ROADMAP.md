@@ -80,6 +80,11 @@ Milestones may overlap where dependencies permit. Continue engineering toward th
 
 ### R1.5 — Customer installation and Hostinger distribution
 
+**Self-host delivery target:** one OCI image with supported Docker/Compose, Kubernetes and compatible Hostinger VPS deployment routes. Kubernetes packaging is planned/in progress, **not verified in a cluster**. Publish only an approved registry/release artifact, with version tag, immutable digest, source revision/build identity and retained scan evidence. Do not use `latest` as the only identity or embed installation credentials.
+
+**Per-route acceptance:** install from empty state, synthetic capture, graceful stop/restart, one-writer upgrade/rollback, secret permissions, private admin/optional receiver isolation, and isolated backup restore. For Kubernetes additionally verify actual CSI/Secret behavior, no overlapping writer during replacement, resource/probe behavior and network controls. A manifest lint or local Docker success is not Kubernetes acceptance. Image platform support must match tested architectures; no multi-architecture claim from a single-platform build.
+
+
 **Current:** public MIT repository, README/screenshots, Node/Docker packaging and owned-host sandbox evidence exist. No actual Hostinger installation or program approval is claimed. PHP/shared hosting is not interchangeable with this Docker VPS profile.
 
 **Build/finish:** supported-host preflight, secure secret provisioning, explicit lifecycle/backup commands and install troubleshooting; a template compatible with the actual Hostinger program flow if accepted. Keep the private admin model and reviewed receiver boundaries intact rather than weakening them for a template.

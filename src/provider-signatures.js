@@ -1,5 +1,5 @@
 import {createHmac,timingSafeEqual} from 'node:crypto';
-import {openSync,fstatSync,readSync,closeSync,constants} from 'node:fs';
+import {readSecret} from './secrets.js';
 
 const invalid=()=>new Error('Invalid Stripe webhook signature');
 // Standalone inbound authentication, not event parsing, authorization or replay signing.
@@ -45,16 +45,7 @@ export function validateStripeSignatureHeader({signatureHeader,headerCount,nowMs
 }
 
 export function readStripeSecret(env=process.env) {
-  const direct=env.LAB_STRIPE_SECRET,path=env.LAB_STRIPE_SECRET_FILE;
-  if(direct===undefined&&path===undefined)return null;
-  if(direct!==undefined&&path!==undefined)throw Error('Configure only one Stripe signing secret source');
-  let value=direct,fd;
-  if(path!==undefined){try{
-    if(typeof path!=='string'||!path)throw Error();
-    fd=openSync(path,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);const stat=fstatSync(fd);
-    if(!stat.isFile()||stat.nlink!==1||(stat.mode&0o077)!==0||(process.getuid&&stat.uid!==process.getuid())||stat.size>4096)throw Error();
-    const bytes=Buffer.alloc(4097);let total=0;while(total<bytes.length){const n=readSync(fd,bytes,total,bytes.length-total,null);if(!n)break;total+=n;}if(total>4096)throw Error();
-    value=new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(0,total)).trim();
-  }catch{throw Error('Stripe secret file must be private, owned, regular, non-linked and at most 4 KB');}finally{if(fd!==undefined)closeSync(fd);}}
+  const value=readSecret('LAB_STRIPE_SECRET',{env});
+  if(value===undefined)return null;
   createStripeVerifier({secret:value});return value;
 }

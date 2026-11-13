@@ -26,6 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: LAB_TOKEN=synthetic-ci-validation-token-00000000 docker compose config --quiet
+      - name: Validate verified-image Compose profile
+        run: LAB_IMAGE=webhook-replay-lab:synthetic-validation LAB_TOKEN=synthetic-ci-validation-token-00000000 LAB_STORAGE_KEY=$(printf 'ab%.0s' {1..32}) docker compose -f compose.image.yaml config --quiet
       - run: docker build -t webhook-replay-lab:test .
       - name: Check isolated container
         shell: bash
@@ -79,6 +81,27 @@ jobs:
           node_version=$(docker run --rm --network none "$image_id" node -p 'process.versions.node')
           curl --fail --silent --show-error --max-time 30 https://raw.githubusercontent.com/nodejs/security-wg/main/vuln/core/index.json -o security-evidence/node-core-feed.json
           SEMVER_MODULE="$(npm root -g)/npm/node_modules/semver" node scripts/check-node-advisories.cjs "$node_version" security-evidence/node-core-feed.json > security-evidence/node-core-result.json
+      - name: Export verified Linux amd64 image
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p image-artifact
+          version=$(node -p 'JSON.parse(require("fs").readFileSync("package.json","utf8")).version')
+          tag="webhook-replay-lab:${version}-${GITHUB_SHA:0:12}-amd64"
+          image_id=$(cat security-evidence/image-id.txt)
+          docker tag "$image_id" "$tag"
+          docker image save "$tag" | gzip -n > image-artifact/webhook-replay-lab-linux-amd64.tar.gz
+          (cd image-artifact && sha256sum webhook-replay-lab-linux-amd64.tar.gz > SHA256SUMS)
+          gzip -dc image-artifact/webhook-replay-lab-linux-amd64.tar.gz | docker image load
+          test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$image_id"
+          IMAGE_ID="$image_id" IMAGE_TAG="$tag" node --input-type=module -e 'import fs from "node:fs";import {readBuildInfo} from "./src/build-info.js";fs.writeFileSync("image-artifact/build.json",JSON.stringify({...readBuildInfo(),commit:process.env.GITHUB_SHA,imageId:process.env.IMAGE_ID,tag:process.env.IMAGE_TAG,platform:"linux/amd64",archiveFormat:"docker-save+gzip",publishedRegistry:false},null,2)+"\n")'
+      - name: Retain verified candidate image
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-image-linux-amd64
+          path: image-artifact/
+          retention-days: 14
+          if-no-files-found: error
       - name: Retain security evidence even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -87,3 +110,35 @@ jobs:
           path: security-evidence/
           retention-days: 14
           if-no-files-found: warn
+
+  kubernetes:
+    needs: container
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: verified-image-linux-amd64
+          path: image-artifact
+      - name: Install checksum-pinned official test tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hook-tools"
+          curl --fail --silent --show-error --location --max-time 90 https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 -o "$RUNNER_TEMP/hook-tools/kind"
+          echo "aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d  $RUNNER_TEMP/hook-tools/kind" | sha256sum -c -
+          curl --fail --silent --show-error --location --max-time 90 https://dl.k8s.io/release/v1.37.0/bin/linux/amd64/kubectl -o "$RUNNER_TEMP/hook-tools/kubectl"
+          echo "6129359f4e1f3848a5572ccb0b26cf28b8ca08cef38c95a765b2f64a2c961a2f  $RUNNER_TEMP/hook-tools/kubectl" | sha256sum -c -
+          chmod 700 "$RUNNER_TEMP/hook-tools/kind" "$RUNNER_TEMP/hook-tools/kubectl"
+      - name: Verify archive and test disposable Kubernetes
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="$RUNNER_TEMP/hook-tools:$PATH"
+          (cd image-artifact && sha256sum -c SHA256SUMS)
+          gzip -dc image-artifact/webhook-replay-lab-linux-amd64.tar.gz | docker image load
+          tag=$(node -p 'JSON.parse(require("fs").readFileSync("image-artifact/build.json","utf8")).tag')
+          expected=$(node -p 'JSON.parse(require("fs").readFileSync("image-artifact/build.json","utf8")).imageId')
+          test "$(docker image inspect "$tag" --format '{{.Id}}')" = "$expected"
+          LAB_TEST_IMAGE="$tag" KIND_NODE_IMAGE=kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5 node test/kubernetes-kind.mjs

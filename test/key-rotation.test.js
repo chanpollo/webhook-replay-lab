@@ -21,6 +21,7 @@ test('rotation refuses live/stale locks, wrong key, in-place paths and existing/
  assert.throws(()=>rotateStorageKey({...f,oldKey:'ef'.repeat(32)}),/authentication/);assert.equal(existsSync(f.destination),false);
  assert.throws(()=>rotateStorageKey({...f,destination:f.source}),/In-place/);
  assert.throws(()=>rotateStorageKey({...f,newKey:oldKey}),/different keys/);
+ assert.throws(()=>rotateStorageKey({...f,newKey:oldKey.toUpperCase()}),/different keys/);
  writeFileSync(f.source+'.lock','stale',{mode:0o600});assert.throws(()=>rotateStorageKey(f),/locked/);rmSync(f.source+'.lock');
  writeFileSync(f.destination,'preserve',{mode:0o600});assert.throws(()=>rotateStorageKey(f),/not exist/);assert.equal(readFileSync(f.destination,'utf8'),'preserve');rmSync(f.destination);
  symlinkSync(f.source,f.destination);assert.throws(()=>rotateStorageKey(f),/not exist/);assert.deepEqual(readFileSync(f.source),before);assert.equal(existsSync(f.source+'.lock'),false);

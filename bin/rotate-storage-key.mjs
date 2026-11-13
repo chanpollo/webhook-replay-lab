@@ -7,7 +7,7 @@ import {validateState} from '../src/server.js';
 
 // Offline copy only: no listener, replay, source save or automatic lock removal.
 export function rotateStorageKey({source,destination,oldKey,newKey}) {
-  if(oldKey===newKey)throw Error('Rotation requires different keys');
+  if(typeof oldKey==='string'&&typeof newKey==='string'&&oldKey.toLowerCase()===newKey.toLowerCase())throw Error('Rotation requires different keys');
   return copySnapshot({source,destination,oldKey,newKey});
 }
 

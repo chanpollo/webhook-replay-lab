@@ -1,0 +1,17 @@
+{"reference":{"runtime":{"version":"0.3.0","build":"e52b4598eb01"},"sourceCommit":null,"node":"24.15.0","platform":"darwin","arch":"arm64","cpuModel":"Apple M4","cpuCount":10,"hostMemoryBytes":17179869184,"durationSeconds":10,"latencyBudgetP95Ms":250,"limits":{"events":200,"payloadBytes":65536,"requestsPerCredentialPerMinute":120},"workload":"20 initial retained events. One request/second; 10-step mix: 2 captures, 2 deletes, 5 reads, 1 bad-signature rejection. 1 KB synthetic field. Final burst: 150 reads at concurrency 8. No outbound replay. CPU/RSS include local driver and service."}}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Steady p95 exceeds predeclared 250 ms local budget
+    at file:///Users/ucode/Codes/github/enta1234/webhook-replay-lab/test/endurance.mjs:43:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.15.0
